@@ -1,0 +1,36 @@
+# Rust
+/target
+**/*.rs.bk
+
+# Private Web Platform & Dashboard (Maintained separately in private repo enabled404/hera-web)
+dashboard/
+node_modules
+/node_modules
+/.next
+/dist
+.next
+out
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+/sdks/python/build/
+/sdks/python/dist/
+
+# Package archives & reports
+*.tar.gz
+*.sarif
+output.sarif
+
+# Environment & local settings
+.env
+.env*.local
+.env.local
+.DS_Store
+*.swp
+*.log
+.vercel
+.agents/
+videos/
