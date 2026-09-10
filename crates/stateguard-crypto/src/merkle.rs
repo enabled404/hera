@@ -6,11 +6,13 @@ pub struct MerkleProof {
     pub leaf_index: usize,
     pub total_leaves: usize,
     pub siblings: Vec<([u8; 32], bool)>, // (sibling_hash, is_right_sibling)
+    pub parent_root: Option<[u8; 32]>,
 }
 
 #[derive(Debug, Clone)]
 pub struct MerkleTree {
     pub leaves: Vec<[u8; 32]>,
+    pub parent_root: Option<[u8; 32]>,
     levels: Vec<Vec<[u8; 32]>>,
 }
 
@@ -37,10 +39,15 @@ pub fn hash_leaf(data: &[u8]) -> [u8; 32] {
 
 impl MerkleTree {
     pub fn from_leaf_hashes(leaves: Vec<[u8; 32]>) -> Self {
+        Self::from_leaf_hashes_with_parent(leaves, None)
+    }
+
+    pub fn from_leaf_hashes_with_parent(leaves: Vec<[u8; 32]>, parent_root: Option<[u8; 32]>) -> Self {
         if leaves.is_empty() {
             let empty_root = hash_leaf(b"EMPTY_TREE");
             return Self {
                 leaves: vec![],
+                parent_root,
                 levels: vec![vec![empty_root]],
             };
         }
@@ -63,12 +70,26 @@ impl MerkleTree {
             current_level = next_level;
         }
 
-        Self { leaves, levels }
+        Self {
+            leaves,
+            parent_root,
+            levels,
+        }
     }
 
     pub fn from_raw_envelopes(envelopes: &[&[u8]]) -> Self {
         let leaves: Vec<[u8; 32]> = envelopes.iter().map(|e| hash_leaf(e)).collect();
         Self::from_leaf_hashes(leaves)
+    }
+
+    pub fn with_parent_root(mut self, parent: [u8; 32]) -> Self {
+        self.parent_root = Some(parent);
+        self
+    }
+
+    /// Spawns a child branch execution tree recording this tree's root as its parent root
+    pub fn fork_child_tree(&self, child_leaves: Vec<[u8; 32]>) -> Self {
+        Self::from_leaf_hashes_with_parent(child_leaves, Some(self.root()))
     }
 
     pub fn root(&self) -> [u8; 32] {
@@ -98,7 +119,6 @@ impl MerkleTree {
                 level[idx]
             };
 
-            // is_right_sibling indicates whether the sibling is on the right of our node
             siblings.push((sibling_hash, !is_right));
             idx /= 2;
         }
@@ -107,6 +127,7 @@ impl MerkleTree {
             leaf_index,
             total_leaves: self.leaves.len(),
             siblings,
+            parent_root: self.parent_root,
         })
     }
 }
@@ -121,4 +142,13 @@ pub fn verify_proof(root: &[u8; 32], leaf: &[u8; 32], proof: &MerkleProof) -> bo
         };
     }
     &current == root
+}
+
+/// Verifies that a child branch tree's recorded parent root matches the expected origin parent root
+pub fn verify_branch_origin(child_tree: &MerkleTree, expected_parent_root: &[u8; 32]) -> bool {
+    if let Some(ref parent) = child_tree.parent_root {
+        parent == expected_parent_root
+    } else {
+        false
+    }
 }

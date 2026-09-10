@@ -43,6 +43,11 @@ pub enum CryptoError {
         bound_session: String,
         target_session: String,
     },
+    #[error("Branch mismatch: bound to '{bound_branch}', attempted use on '{target_branch}'")]
+    BranchMismatch {
+        bound_branch: String,
+        target_branch: String,
+    },
     #[error("Merkle proof verification failed for root {0}")]
     MerkleProofInvalid(String),
 }
@@ -58,6 +63,7 @@ pub struct ContextBinding {
     pub tenant_id: String,
     pub user_id: String,
     pub session_id: String,
+    pub branch_id: String,
     pub turn_index: u64,
     pub model_id: String,
 }
@@ -70,17 +76,29 @@ impl ContextBinding {
         turn_index: u64,
         model_id: impl Into<String>,
     ) -> Self {
+        Self::new_with_branch(tenant_id, user_id, session_id, "main", turn_index, model_id)
+    }
+
+    pub fn new_with_branch(
+        tenant_id: impl Into<String>,
+        user_id: impl Into<String>,
+        session_id: impl Into<String>,
+        branch_id: impl Into<String>,
+        turn_index: u64,
+        model_id: impl Into<String>,
+    ) -> Self {
         Self {
             tenant_id: tenant_id.into(),
             user_id: user_id.into(),
             session_id: session_id.into(),
+            branch_id: branch_id.into(),
             turn_index,
             model_id: model_id.into(),
         }
     }
 
     /// Compute canonical associated data (AD):
-    /// AD = tenant_id || user_id || session_id || turn_index || model_id
+    /// AD = tenant_id || user_id || session_id || branch_id || turn_index || model_id
     /// Encoded with length-prefixes to avoid canonical collision vulnerabilities.
     pub fn canonical_associated_data(&self) -> Vec<u8> {
         let mut ad = Vec::new();
@@ -89,6 +107,7 @@ impl ContextBinding {
             &self.tenant_id,
             &self.user_id,
             &self.session_id,
+            &self.branch_id,
             &turn_str,
             &self.model_id,
         ] {
@@ -116,6 +135,12 @@ impl ContextBinding {
             return Err(CryptoError::SessionMismatch {
                 bound_session: self.session_id.clone(),
                 target_session: other.session_id.clone(),
+            });
+        }
+        if self.branch_id != other.branch_id {
+            return Err(CryptoError::BranchMismatch {
+                bound_branch: self.branch_id.clone(),
+                target_branch: other.branch_id.clone(),
             });
         }
         if self.model_id != other.model_id {
@@ -235,6 +260,12 @@ impl AeadEnvelopeHandler {
             return Err(CryptoError::SessionMismatch {
                 bound_session: envelope.context.session_id.clone(),
                 target_session: expected_context.session_id.clone(),
+            });
+        }
+        if envelope.context.branch_id != expected_context.branch_id {
+            return Err(CryptoError::BranchMismatch {
+                bound_branch: envelope.context.branch_id.clone(),
+                target_branch: expected_context.branch_id.clone(),
             });
         }
         if envelope.context.model_id != expected_context.model_id {

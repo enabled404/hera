@@ -3,8 +3,8 @@ pub mod chain;
 pub mod merkle;
 
 pub use aead::{AeadEnvelopeHandler, BoundEnvelope, CipherSuite, ContextBinding, CryptoError};
-pub use chain::ChainState;
-pub use merkle::{hash_leaf, verify_proof, MerkleProof, MerkleTree};
+pub use chain::{ChainState, DagChainTracker};
+pub use merkle::{hash_leaf, verify_branch_origin, verify_proof, MerkleProof, MerkleTree};
 
 #[cfg(test)]
 mod tests {
@@ -193,5 +193,81 @@ mod tests {
         // Pruning leaves: surviving turn 4 can still be verified with its proof
         let proof4 = tree.generate_proof(3).expect("proof for turn 4");
         assert!(verify_proof(&root, &turn4, &proof4));
+    }
+
+    #[test]
+    fn test_dag_branch_forking() {
+        let mut tracker = DagChainTracker::new(TEST_KEY);
+
+        // Advance main branch to turn 1
+        let main = tracker.get_or_create("user-1", "sess-tree", "main");
+        let tag_main_1 = main.advance_turn(1).expect("advance main turn 1");
+        assert_eq!(main.current_turn, 1);
+
+        // Fork branch_alpha and branch_beta from turn 1
+        let mut branch_alpha = tracker
+            .fork("user-1", "sess-tree", "main", "branch_alpha")
+            .expect("fork branch alpha");
+        let mut branch_beta = tracker
+            .fork("user-1", "sess-tree", "main", "branch_beta")
+            .expect("fork branch beta");
+
+        // Both parallel sub-agents query turn 2 from parent turn 1
+        let tag_alpha_2 = branch_alpha
+            .advance_turn(2)
+            .expect("branch alpha advance to turn 2");
+        let tag_beta_2 = branch_beta
+            .advance_turn(2)
+            .expect("branch beta advance to turn 2");
+
+        assert_eq!(branch_alpha.current_turn, 2);
+        assert_eq!(branch_beta.current_turn, 2);
+        assert_ne!(tag_alpha_2, tag_beta_2);
+        assert_ne!(tag_alpha_2, tag_main_1);
+    }
+
+    #[test]
+    fn test_reject_cross_branch_replay() {
+        let ctx_alpha = ContextBinding::new_with_branch(
+            "tenant-1",
+            "user-1",
+            "sess-1",
+            "branch_alpha",
+            1,
+            "claude-opus-4.8",
+        );
+        let env = AeadEnvelopeHandler::encrypt(
+            &TEST_KEY,
+            CipherSuite::Aes256Gcm,
+            ctx_alpha,
+            b"Alpha branch reasoning",
+            "tag-alpha-1",
+        )
+        .unwrap();
+
+        // Attempt to replay into sibling branch_beta
+        let ctx_beta = ContextBinding::new_with_branch(
+            "tenant-1",
+            "user-1",
+            "sess-1",
+            "branch_beta",
+            1,
+            "claude-opus-4.8",
+        );
+        let result = AeadEnvelopeHandler::decrypt(&TEST_KEY, &env, &ctx_beta);
+        assert!(matches!(result, Err(CryptoError::BranchMismatch { .. })));
+    }
+
+    #[test]
+    fn test_merkle_branch_root_linking() {
+        let parent_tree = MerkleTree::from_leaf_hashes(vec![hash_leaf(b"t1"), hash_leaf(b"t2")]);
+        let parent_root = parent_tree.root();
+
+        // Sub-agent branch child tree
+        let child_tree = parent_tree.fork_child_tree(vec![hash_leaf(b"sub_t1")]);
+        assert!(verify_branch_origin(&child_tree, &parent_root));
+
+        let unlinked_tree = MerkleTree::from_leaf_hashes(vec![hash_leaf(b"other")]);
+        assert!(!verify_branch_origin(&unlinked_tree, &parent_root));
     }
 }
