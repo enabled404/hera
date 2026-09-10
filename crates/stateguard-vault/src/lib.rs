@@ -3,7 +3,7 @@ pub mod handle;
 pub mod memory;
 pub mod redis_store;
 
-pub use entry::VaultEntry;
+pub use entry::{VaultEntry, VaultEntryError};
 pub use handle::{generate_token_handle, is_token_handle};
 pub use memory::InMemoryVault;
 pub use redis_store::RedisVault;

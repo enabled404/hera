@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Streaming Shannon entropy and credential pattern detection engine for StateGuard"
 
 [dependencies]
