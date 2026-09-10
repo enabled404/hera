@@ -3,7 +3,7 @@ use crate::state::AppState;
 use serde_json::Value;
 use stateguard_crypto::{AeadEnvelopeHandler, BoundEnvelope, ContextBinding, CryptoError};
 use stateguard_scanner::compute_fingerprint;
-use stateguard_vault::is_token_handle;
+use stateguard_vault::{is_token_handle, VaultEntry};
 
 #[derive(Debug)]
 pub enum InboundError {
@@ -17,8 +17,10 @@ pub struct InboundProcessor<'a> {
     pub tenant_id: String,
     pub user_id: String,
     pub session_id: String,
+    pub branch_id: String,
     pub turn_index: u64,
     pub target_model: String,
+    pub encapsulated_fallback: Option<String>,
 }
 
 impl<'a> InboundProcessor<'a> {
@@ -30,13 +32,37 @@ impl<'a> InboundProcessor<'a> {
         turn_index: u64,
         target_model: impl Into<String>,
     ) -> Self {
+        Self::new_with_branch(
+            state,
+            tenant_id,
+            user_id,
+            session_id,
+            "main",
+            turn_index,
+            target_model,
+            None,
+        )
+    }
+
+    pub fn new_with_branch(
+        state: &'a AppState,
+        tenant_id: impl Into<String>,
+        user_id: impl Into<String>,
+        session_id: impl Into<String>,
+        branch_id: impl Into<String>,
+        turn_index: u64,
+        target_model: impl Into<String>,
+        encapsulated_fallback: Option<String>,
+    ) -> Self {
         Self {
             state,
             tenant_id: tenant_id.into(),
             user_id: user_id.into(),
             session_id: session_id.into(),
+            branch_id: branch_id.into(),
             turn_index,
             target_model: target_model.into(),
+            encapsulated_fallback,
         }
     }
 
@@ -85,22 +111,58 @@ impl<'a> InboundProcessor<'a> {
     async fn validate_and_restore_token(&self, token: &str) -> Result<String, InboundError> {
         // 1. Check if token is a vaulted handle (sgh_...)
         if is_token_handle(token) {
-            let entry = match self.state.vault.retrieve(token).await {
+            let entry_res = self.state.vault.retrieve(token).await;
+            let entry = match entry_res {
                 Ok(Some(e)) => e,
                 Ok(None) => {
-                    self.state
-                        .record_event(SecurityEvent::new(
+                    // Hybrid Encapsulated State Recovery from X-StateGuard-Encapsulated-Fallback
+                    let recovered_entry = if let Some(ref fallback_b64) = self.encapsulated_fallback {
+                        let tenant_key = self
+                            .state
+                            .tenant_keys
+                            .get(&self.tenant_id)
+                            .map(|k| *k)
+                            .unwrap_or(self.state.config.default_tenant_key);
+
+                        match VaultEntry::restore_from_encapsulated(
+                            fallback_b64,
+                            &tenant_key,
                             &self.tenant_id,
-                            Some(self.session_id.clone()),
-                            "STATE_HANDLE_NOT_FOUND",
-                            "MEDIUM",
-                            Some(compute_fingerprint(token)),
-                            serde_json::json!({ "handle": token }),
-                        ))
-                        .await;
-                    return Err(InboundError::StateIntegrityViolation(
-                        "Referenced state handle not found or expired".to_string(),
-                    ));
+                            &self.session_id,
+                            &self.branch_id,
+                        ) {
+                            Ok(recovered) if recovered.handle == token => {
+                                tracing::info!(
+                                    "Transparently recovered evicted vault handle {} from encapsulated fallback",
+                                    token
+                                );
+                                let _ = self.state.vault.store(recovered.clone()).await;
+                                Some(recovered)
+                            }
+                            _ => None,
+                        }
+                    } else {
+                        None
+                    };
+
+                    match recovered_entry {
+                        Some(e) => e,
+                        None => {
+                            self.state
+                                .record_event(SecurityEvent::new(
+                                    &self.tenant_id,
+                                    Some(self.session_id.clone()),
+                                    "STATE_HANDLE_NOT_FOUND",
+                                    "MEDIUM",
+                                    Some(compute_fingerprint(token)),
+                                    serde_json::json!({ "handle": token }),
+                                ))
+                                .await;
+                            return Err(InboundError::StateIntegrityViolation(
+                                "Referenced state handle not found or expired".to_string(),
+                            ));
+                        }
+                    }
                 }
                 Err(e) => return Err(InboundError::Internal(e)),
             };
@@ -169,6 +231,30 @@ impl<'a> InboundProcessor<'a> {
                 ));
             }
 
+            // Enforce Branch Isolation (DAG-Aware)
+            let is_branch_compatible = entry.branch_id == self.branch_id
+                || entry.branch_id == "main"
+                || entry.branch_id == "branch_main";
+            if !is_branch_compatible {
+                self.state
+                    .record_event(SecurityEvent::new(
+                        &self.tenant_id,
+                        Some(self.session_id.clone()),
+                        "CROSS_BRANCH_REPLAY",
+                        "HIGH",
+                        Some(compute_fingerprint(token)),
+                        serde_json::json!({
+                            "bound_branch": entry.branch_id,
+                            "attempted_branch": self.branch_id
+                        }),
+                    ))
+                    .await;
+                return Err(InboundError::StateIntegrityViolation(format!(
+                    "Cross-branch replay violation: token bound to branch {}, attempted use on {}",
+                    entry.branch_id, self.branch_id
+                )));
+            }
+
             // Enforce Model Lineage Matching (Test Case B: Model Downgrade Replay)
             if !is_model_compatible(&entry.model_id, &self.target_model) {
                 self.state
@@ -223,11 +309,21 @@ impl<'a> InboundProcessor<'a> {
                 .map(|k| *k)
                 .unwrap_or(self.state.config.default_tenant_key);
 
-            let expected_context = ContextBinding::new(
+            let trial_branch = if env.context.branch_id == self.branch_id
+                || env.context.branch_id == "main"
+                || env.context.branch_id == "branch_main"
+            {
+                env.context.branch_id.as_str()
+            } else {
+                self.branch_id.as_str()
+            };
+
+            let expected_context = ContextBinding::new_with_branch(
                 &self.tenant_id,
                 &self.user_id,
                 &self.session_id,
-                env.context.turn_index, // verify envelope's own turn
+                trial_branch,
+                env.context.turn_index,
                 &env.context.model_id,
             );
 
@@ -267,9 +363,9 @@ impl<'a> InboundProcessor<'a> {
                 }
                 Err(e) => {
                     let ev_type = match e {
-                        CryptoError::TenantMismatch { .. } | CryptoError::UserMismatch { .. } => {
-                            "CROSS_USER_REPLAY"
-                        }
+                        CryptoError::TenantMismatch { .. }
+                        | CryptoError::UserMismatch { .. }
+                        | CryptoError::BranchMismatch { .. } => "CROSS_USER_REPLAY",
                         CryptoError::ModelMismatch { .. } => "MODEL_MISMATCH",
                         _ => "STATE_INTEGRITY_VIOLATION",
                     };
@@ -294,8 +390,6 @@ impl<'a> InboundProcessor<'a> {
 }
 
 /// Checks if reasoning state from model A can be executed on model B.
-/// Reasoning state from high-end frontier models (Opus, GPT-5, Gemini Pro) CANNOT be downgraded
-/// to compliant cheaper sibling models (Haiku, GPT-4o-mini, Gemini Flash) to prevent decryption oracle attacks.
 pub fn is_model_compatible(bound_model: &str, target_model: &str) -> bool {
     let b = bound_model.to_lowercase();
     let t = target_model.to_lowercase();

@@ -40,6 +40,17 @@ pub async fn handle_anthropic_messages(
         .and_then(|s| s.parse::<u64>().ok())
         .unwrap_or(1);
 
+    let branch_id = headers
+        .get("x-stateguard-branch")
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("main")
+        .to_string();
+
+    let encapsulated_fallback = headers
+        .get("x-stateguard-encapsulated-fallback")
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s.to_string());
+
     let target_model = payload
         .get("model")
         .and_then(|m| m.as_str())
@@ -47,13 +58,15 @@ pub async fn handle_anthropic_messages(
         .to_string();
 
     // 1. Process inbound payload: validate reasoning tokens & restore original signatures
-    let processor = InboundProcessor::new(
+    let processor = InboundProcessor::new_with_branch(
         &state,
         &tenant_id,
         &user_id,
         &session_id,
+        &branch_id,
         turn_index,
         &target_model,
+        encapsulated_fallback,
     );
 
     if let Err(err) = processor.process_and_restore(&mut payload).await {
@@ -128,11 +141,12 @@ pub async fn handle_anthropic_messages(
         .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
     if is_stream {
-        let mut transformer = SseTransformer::new(
+        let mut transformer = SseTransformer::new_with_branch(
             state.clone(),
             tenant_id,
             user_id,
             session_id,
+            branch_id,
             turn_index,
             target_model,
         );
@@ -174,6 +188,8 @@ pub async fn handle_anthropic_messages(
         // Redact secrets and vault/bind signatures in non-streaming response
         let _ = state.redactor.scrub_json(&mut json_body);
 
+        let mut fallback_token: Option<String> = None;
+
         // Vault or bind signatures in response content
         if let Some(content) = json_body.get_mut("content").and_then(|c| c.as_array_mut()) {
             for block in content {
@@ -182,17 +198,26 @@ pub async fn handle_anthropic_messages(
                         let handle_or_envelope = match state.config.mode {
                             crate::models::ProxyMode::StatefulVault => {
                                 let h = stateguard_vault::generate_token_handle();
-                                let entry = stateguard_vault::VaultEntry::new(
+                                let entry = stateguard_vault::VaultEntry::new_with_branch(
                                     &h,
                                     "anthropic",
                                     raw_sig,
                                     &tenant_id,
                                     &user_id,
                                     &session_id,
+                                    &branch_id,
                                     turn_index,
                                     &target_model,
                                     3600,
                                 );
+                                let tenant_key = state
+                                    .tenant_keys
+                                    .get(&tenant_id)
+                                    .map(|k| *k)
+                                    .unwrap_or(state.config.default_tenant_key);
+                                if let Ok(fb) = entry.create_encapsulated_fallback(&tenant_key) {
+                                    fallback_token = Some(fb);
+                                }
                                 let _ = state.vault.store(entry).await;
                                 h
                             }
@@ -202,10 +227,11 @@ pub async fn handle_anthropic_messages(
                                     .get(&tenant_id)
                                     .map(|k| *k)
                                     .unwrap_or(state.config.default_tenant_key);
-                                let ctx = stateguard_crypto::ContextBinding::new(
+                                let ctx = stateguard_crypto::ContextBinding::new_with_branch(
                                     &tenant_id,
                                     &user_id,
                                     &session_id,
+                                    &branch_id,
                                     turn_index,
                                     &target_model,
                                 );
@@ -227,6 +253,12 @@ pub async fn handle_anthropic_messages(
             }
         }
 
-        Ok((status, Json(json_body)).into_response())
+        let mut res = (status, Json(json_body)).into_response();
+        if let Some(fb) = fallback_token {
+            if let Ok(hdr) = fb.parse() {
+                res.headers_mut().insert("x-stateguard-encapsulated-fallback", hdr);
+            }
+        }
+        Ok(res)
     }
 }

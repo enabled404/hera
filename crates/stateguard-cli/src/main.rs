@@ -1,3 +1,4 @@
+mod migrator;
 mod reporter;
 mod scanner;
 
@@ -38,6 +39,25 @@ enum Commands {
         /// Exit with non-zero status code if violations found
         #[arg(long, default_value_t = false)]
         fail_on_error: bool,
+    },
+
+    /// Batch re-sign and migrate historical agent execution logs
+    Migrate {
+        /// Input directory containing legacy trace logs
+        #[arg(long)]
+        input: PathBuf,
+
+        /// Output directory for sanitized traces
+        #[arg(long)]
+        output: PathBuf,
+
+        /// StateGuard gateway URL (optional, e.g. http://127.0.0.1:8080)
+        #[arg(long)]
+        gateway_url: Option<String>,
+
+        /// Hex tenant secret key (optional)
+        #[arg(long)]
+        tenant_key: Option<String>,
     },
 
     /// Verify an opaque BoundEnvelope string against expected context
@@ -153,6 +173,28 @@ fn main() {
                 }
                 Err(err) => {
                     eprintln!("❌ Envelope Verification FAILED: {}", err);
+                    process::exit(1);
+                }
+            }
+        }
+        Commands::Migrate {
+            input,
+            output,
+            gateway_url,
+            tenant_key,
+        } => {
+            println!("🚀 Starting migration from {} to {}...", input.display(), output.display());
+            let migrator = migrator::Migrator::new(gateway_url, tenant_key);
+            match migrator.migrate_directory(&input, &output) {
+                Ok(report) => {
+                    println!("✅ Migration completed successfully!");
+                    println!("  - Files processed: {}", report.files_processed);
+                    println!("  - Signatures vaulted: {}", report.signatures_vaulted);
+                    println!("  - Secrets scrubbed: {}", report.secrets_scrubbed);
+                    println!("  - Report written to: {}/migration_report.json", output.display());
+                }
+                Err(e) => {
+                    eprintln!("❌ Migration failed: {}", e);
                     process::exit(1);
                 }
             }

@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Static trace auditing and CI/CD security scanner for StateGuard"
 
 [dependencies]
@@ -17,3 +19,6 @@ chrono = { version = "0.4", features = ["serde"] }
 hex = "0.4"
 stateguard-scanner = { path = "../stateguard-scanner" }
 stateguard-crypto = { path = "../stateguard-crypto" }
+stateguard-vault = { path = "../stateguard-vault" }
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+regex = "1.10"

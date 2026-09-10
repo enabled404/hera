@@ -284,3 +284,351 @@ async fn test_case_d_latency_benchmark() {
         p99
     );
 }
+
+#[tokio::test]
+async fn test_case_e_agent_dag_forking() {
+    let (upstream_url, _) = start_mock_upstream().await;
+    let (gateway_url, _) = start_test_gateway(upstream_url, ProxyMode::StatefulVault).await;
+    let client = reqwest::Client::new();
+
+    // 1. Initialize session on branch_main at Turn 1
+    let resp_turn1 = client
+        .post(format!("{}/v1/messages", gateway_url))
+        .header("x-stateguard-tenant-id", "tenant-alpha")
+        .header("x-stateguard-user-id", "user-alice")
+        .header("x-stateguard-session-id", "sess-dag-fork-01")
+        .header("x-stateguard-branch", "branch_main")
+        .header("x-stateguard-turn", "1")
+        .json(&json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [{"role": "user", "content": "Execute root turn"}]
+        }))
+        .send()
+        .await
+        .expect("Turn 1 request failed");
+
+    assert_eq!(resp_turn1.status(), reqwest::StatusCode::OK);
+    let body_turn1: Value = resp_turn1.json().await.unwrap();
+    let handle_t1 = body_turn1["content"][0]["signature"]
+        .as_str()
+        .expect("Should have signature handle")
+        .to_string();
+    assert!(handle_t1.starts_with("sgh_"));
+
+    // 2. Spawn two simultaneous sub-agent branches (branch_alpha and branch_beta) both querying Turn 2 from parent Turn 1
+    let make_subagent_req = |branch_name: &'static str| {
+        let url = format!("{}/v1/messages", gateway_url);
+        let client_ref = client.clone();
+        let sig = handle_t1.clone();
+        async move {
+            client_ref
+                .post(url)
+                .header("x-stateguard-tenant-id", "tenant-alpha")
+                .header("x-stateguard-user-id", "user-alice")
+                .header("x-stateguard-session-id", "sess-dag-fork-01")
+                .header("x-stateguard-branch", branch_name)
+                .header("x-stateguard-turn", "2")
+                .json(&json!({
+                    "model": "claude-3-5-sonnet-20241022",
+                    "messages": [
+                        {
+                            "role": "assistant",
+                            "content": [
+                                {
+                                    "type": "thinking",
+                                    "thinking": "prior thoughts from root",
+                                    "signature": sig
+                                }
+                            ]
+                        },
+                        {"role": "user", "content": format!("Sub-agent {} executing parallel branch", branch_name)}
+                    ]
+                }))
+                .send()
+                .await
+        }
+    };
+
+    let (res_alpha, res_beta) = tokio::join!(
+        make_subagent_req("branch_alpha"),
+        make_subagent_req("branch_beta")
+    );
+
+    let resp_alpha = res_alpha.expect("Alpha request failed");
+    let resp_beta = res_beta.expect("Beta request failed");
+
+    assert_eq!(resp_alpha.status(), reqwest::StatusCode::OK, "branch_alpha must complete successfully");
+    assert_eq!(resp_beta.status(), reqwest::StatusCode::OK, "branch_beta must complete successfully");
+
+    let body_alpha: Value = resp_alpha.json().await.unwrap();
+    let body_beta: Value = resp_beta.json().await.unwrap();
+
+    let sig_alpha = body_alpha["content"][0]["signature"].as_str().unwrap();
+    let sig_beta = body_beta["content"][0]["signature"].as_str().unwrap();
+
+    assert!(sig_alpha.starts_with("sgh_"));
+    assert!(sig_beta.starts_with("sgh_"));
+    assert_ne!(sig_alpha, sig_beta, "Sub-agent branches must produce unique branch handles");
+}
+
+#[tokio::test]
+async fn test_case_f_fragmented_sse_packets() {
+    use stateguard_proxy::sse::SseTransformer;
+
+    let (upstream_url, _) = start_mock_upstream().await;
+    let (_, state) = start_test_gateway(upstream_url, ProxyMode::StatefulVault).await;
+
+    // Construct 65,000-character thinking signature
+    let long_signature = "E".repeat(65000);
+    let sse_event = format!(
+        "event: content_block_start\ndata: {{\"type\": \"content_block_start\", \"index\": 0, \"content_block\": {{\"type\": \"thinking\", \"thinking\": \"extended test-time compute\", \"signature\": \"{}\"}}}}\n\n",
+        long_signature
+    );
+
+    let event_bytes = sse_event.as_bytes();
+    // Fragment across 8 separate 8KB (8192-byte) chunks
+    let chunk_size = 8192;
+    let chunks: Vec<&[u8]> = event_bytes.chunks(chunk_size).collect();
+    assert!(chunks.len() >= 8, "Must be fragmented across at least 8 chunks");
+
+    let mut transformer = SseTransformer::new(
+        state.clone(),
+        "tenant-alpha".to_string(),
+        "user-alice".to_string(),
+        "sess-stream-frag-01".to_string(),
+        1,
+        "claude-3-5-sonnet-20241022".to_string(),
+    );
+
+    let mut emitted_bytes = Vec::new();
+    for (i, chunk) in chunks.iter().enumerate() {
+        let out = transformer.transform_chunk(chunk).await;
+        if i < chunks.len() - 1 {
+            // All intermediate chunks before the final delimiter must be buffered
+            assert!(
+                out.is_empty(),
+                "Intermediate chunk {} must be buffered without premature emission",
+                i
+            );
+        } else {
+            emitted_bytes.extend_from_slice(&out);
+        }
+    }
+
+    let emitted_str = String::from_utf8(emitted_bytes).expect("Emitted SSE must be valid UTF-8");
+    assert!(emitted_str.starts_with("event: content_block_start\n"));
+    assert!(emitted_str.contains("data: "));
+    assert!(!emitted_str.contains(&long_signature), "Raw 65KB signature must not leak in SSE stream");
+    assert!(
+        emitted_str.contains("\"signature\":\"sgh_") || emitted_str.contains("\"signature\": \"sgh_"),
+        "Raw signature must be replaced with sgh_ handle"
+    );
+}
+
+#[tokio::test]
+async fn test_case_g_vault_eviction_recovery() {
+    let (upstream_url, _) = start_mock_upstream().await;
+    let (gateway_url, state) = start_test_gateway(upstream_url, ProxyMode::StatefulVault).await;
+    let client = reqwest::Client::new();
+
+    // 1. Complete Turn 1 and receive sgh_ handle and X-StateGuard-Encapsulated-Fallback header
+    let resp_turn1 = client
+        .post(format!("{}/v1/messages", gateway_url))
+        .header("x-stateguard-tenant-id", "tenant-alpha")
+        .header("x-stateguard-user-id", "user-alice")
+        .header("x-stateguard-session-id", "sess-eviction-recovery-01")
+        .header("x-stateguard-turn", "1")
+        .json(&json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [{"role": "user", "content": "Execute turn 1"}]
+        }))
+        .send()
+        .await
+        .expect("Turn 1 request failed");
+
+    assert_eq!(resp_turn1.status(), reqwest::StatusCode::OK);
+
+    // Extract X-StateGuard-Encapsulated-Fallback header
+    let fallback_header = resp_turn1
+        .headers()
+        .get("x-stateguard-encapsulated-fallback")
+        .expect("Must emit X-StateGuard-Encapsulated-Fallback header")
+        .to_str()
+        .unwrap()
+        .to_string();
+
+    let body_turn1: Value = resp_turn1.json().await.unwrap();
+    let captured_handle = body_turn1["content"][0]["signature"]
+        .as_str()
+        .expect("Should have signature handle")
+        .to_string();
+
+    assert!(captured_handle.starts_with("sgh_"));
+    assert!(!fallback_header.is_empty());
+
+    // Verify token exists in vault before eviction
+    assert!(state.vault.retrieve(&captured_handle).await.unwrap().is_some());
+
+    // 2. Simulate Redis FLUSHALL / key TTL eviction: delete handle from vault
+    state.vault.delete(&captured_handle).await.unwrap();
+    assert!(
+        state.vault.retrieve(&captured_handle).await.unwrap().is_none(),
+        "Vault handle must be absent following simulated eviction"
+    );
+
+    // 3. Submit Turn 2 presenting the evicted sgh_ handle alongside X-StateGuard-Encapsulated-Fallback header
+    let resp_turn2 = client
+        .post(format!("{}/v1/messages", gateway_url))
+        .header("x-stateguard-tenant-id", "tenant-alpha")
+        .header("x-stateguard-user-id", "user-alice")
+        .header("x-stateguard-session-id", "sess-eviction-recovery-01")
+        .header("x-stateguard-turn", "2")
+        .header("x-stateguard-encapsulated-fallback", &fallback_header)
+        .json(&json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "thinking",
+                            "thinking": "prior thoughts",
+                            "signature": captured_handle
+                        }
+                    ]
+                },
+                {"role": "user", "content": "Execute turn 2 following cache eviction"}
+            ]
+        }))
+        .send()
+        .await
+        .expect("Turn 2 request failed");
+
+    // Must transparently recover and succeed with HTTP 200 OK
+    assert_eq!(
+        resp_turn2.status(),
+        reqwest::StatusCode::OK,
+        "Proxy must transparently restore state from encapsulated fallback"
+    );
+
+    // Verify vault store has been repopulated
+    let repopulated = state.vault.retrieve(&captured_handle).await.unwrap();
+    assert!(
+        repopulated.is_some(),
+        "Vault cache must be repopulated after encapsulated fallback decryption"
+    );
+}
+
+#[tokio::test]
+async fn test_case_h_batch_migration_pipeline() {
+    use std::fs;
+    use tempfile::tempdir;
+
+    let temp_input = tempdir().unwrap();
+    let temp_output = tempdir().unwrap();
+
+    // Generate fixture containing 50 mock legacy agent logs with raw OpenAI encrypted_content and trapped API keys
+    for i in 1..=50 {
+        let legacy_log = json!({
+            "trace_id": format!("legacy-trace-{:03}", i),
+            "session_id": format!("sess-historical-{:03}", i),
+            "model": "gpt-4o",
+            "metadata": {
+                "environment": "production-archive",
+                "trapped_key": format!("sk-ant-api03-legacysecretkey{:04}01234567890123456789", i)
+            },
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Perform legacy agent reasoning query"
+                },
+                {
+                    "role": "assistant",
+                    "encrypted_content": format!("RAW_UNBOUND_OPENAI_AEAD_ENVELOPE_DATA_{:04}_XYZ==", i)
+                }
+            ]
+        });
+
+        let file_path = temp_input.path().join(format!("agent_trace_{:03}.json", i));
+        fs::write(&file_path, serde_json::to_string_pretty(&legacy_log).unwrap()).unwrap();
+    }
+
+    // Spin up test gateway to service re-signing
+    let (upstream_url, _) = start_mock_upstream().await;
+    let (gateway_url, _) = start_test_gateway(upstream_url, ProxyMode::StatefulVault).await;
+
+    // Run migration
+    let report = {
+        let endpoint = format!("{}/api/v1/traces/re-sign", gateway_url);
+        let http_client = reqwest::Client::new();
+
+        let mut files_processed = 0;
+        let mut signatures_vaulted = 0;
+        let mut secrets_scrubbed = 0;
+
+        for i in 1..=50 {
+            let in_path = temp_input.path().join(format!("agent_trace_{:03}.json", i));
+            let content = fs::read_to_string(&in_path).unwrap();
+            let json_body: Value = serde_json::from_str(&content).unwrap();
+
+            let resp = http_client
+                .post(&endpoint)
+                .header("x-stateguard-tenant-id", "tenant-migration")
+                .json(&json_body)
+                .send()
+                .await
+                .expect("Migration re-sign request failed");
+
+            assert_eq!(resp.status(), reqwest::StatusCode::OK);
+            let res_body: Value = resp.json().await.unwrap();
+
+            let sanitized = res_body.get("sanitized_traces").cloned().unwrap();
+            let out_path = temp_output.path().join(format!("agent_trace_{:03}.json", i));
+            fs::write(&out_path, serde_json::to_string_pretty(&sanitized).unwrap()).unwrap();
+
+            files_processed += 1;
+            signatures_vaulted += res_body["stats"]["signatures_vaulted"].as_u64().unwrap_or(0) as usize;
+            secrets_scrubbed += res_body["stats"]["credentials_scrubbed"].as_u64().unwrap_or(0) as usize;
+        }
+
+        let report = json!({
+            "status": "COMPLETED",
+            "files_processed": files_processed,
+            "signatures_vaulted": signatures_vaulted,
+            "secrets_scrubbed": secrets_scrubbed
+        });
+        fs::write(
+            temp_output.path().join("migration_report.json"),
+            serde_json::to_string_pretty(&report).unwrap(),
+        )
+        .unwrap();
+
+        report
+    };
+
+    // Assert all 50 files are rewritten with sgh_ handles and raw keys are scrubbed
+    assert_eq!(report["files_processed"], 50);
+    assert!(report["signatures_vaulted"].as_u64().unwrap() >= 50);
+    assert!(report["secrets_scrubbed"].as_u64().unwrap() >= 50);
+
+    for i in 1..=50 {
+        let out_path = temp_output.path().join(format!("agent_trace_{:03}.json", i));
+        assert!(out_path.exists(), "Sanitized output file {:03} must exist", i);
+
+        let sanitized_text = fs::read_to_string(&out_path).unwrap();
+        let sanitized_json: Value = serde_json::from_str(&sanitized_text).unwrap();
+
+        // Check raw envelope is replaced with sgh_ handle
+        let enc_str = sanitized_json["messages"][1]["encrypted_content"].as_str().unwrap();
+        assert!(enc_str.starts_with("sgh_"), "File {:03} must have sgh_ handle", i);
+        assert!(!sanitized_text.contains("RAW_UNBOUND_OPENAI_AEAD_ENVELOPE"));
+
+        // Check raw trapped API key is scrubbed
+        assert!(!sanitized_text.contains("sk-ant-api03-legacysecretkey"));
+        assert!(sanitized_text.contains("[REDACTED:ANTHROPIC_KEY:"));
+    }
+
+    // Verify migration_report.json is present
+    let report_file = temp_output.path().join("migration_report.json");
+    assert!(report_file.exists(), "migration_report.json must be generated");
+}

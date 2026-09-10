@@ -47,6 +47,11 @@ pub fn create_app(state: AppState) -> Router {
             "/api/v1/sessions",
             get(handlers::handle_list_sessions).post(handlers::handle_create_session),
         )
+        // Historical Migration & Batch Re-Signing
+        .route(
+            "/api/v1/traces/re-sign",
+            post(handlers::handle_resign_traces),
+        )
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state)
