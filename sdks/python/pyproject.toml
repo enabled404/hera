@@ -1,22 +1,59 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "stateguard"
-version = "0.1.0"
-description = "Enterprise Agent State Security Gateway & Trace Auditing Client SDK"
+version = "1.1.0"
+description = "Zero-Trust State Security Gateway and Reasoning Trace Auditor for AI Agents"
+authors = [{ name = "Saad Khalid", email = "saadkhalid2000@outlook.com" }]
 readme = "README.md"
-requires-python = ">=3.9"
-dependencies = [
-    "httpx>=0.25.0",
-    "pydantic>=2.0",
+license = { text = "Apache-2.0" }
+requires-python = ">=3.8"
+keywords = [
+    "stateguard",
+    "security",
+    "llm",
+    "ai-agents",
+    "chain-of-thought",
+    "reverse-proxy",
+    "anthropic",
+    "openai",
+    "opentelemetry",
+    "langchain",
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
 
 [project.optional-dependencies]
+httpx = ["httpx>=0.24.0"]
+otel = [
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+]
+langchain = ["langchain-core>=0.1.0"]
 all = [
-    "anthropic>=0.20.0",
-    "openai>=1.12.0",
-    "google-generativeai>=0.4.0",
+    "httpx>=0.24.0",
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
     "langchain-core>=0.1.0",
 ]
+
+[project.urls]
+Homepage = "https://saadkhalidhere.vercel.app"
+Repository = "https://github.com/enabled404/hera"
+
+[tool.hatch.build.targets.wheel]
+packages = ["stateguard"]
