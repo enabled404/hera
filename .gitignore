@@ -1,0 +1,27 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Node / Next.js
+/dashboard/node_modules/
+/dashboard/.next/
+/dashboard/out/
+/sdks/typescript/node_modules/
+/sdks/typescript/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+/sdks/python/build/
+/sdks/python/dist/
+
+# Environment and IDE
+.env
+.env.local
+.DS_Store
+*.swp
+*.log
+output.sarif

@@ -1,0 +1,22 @@
+[package]
+name = "stateguard-crypto"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Cryptographic context binding, HMAC sequence chaining, and Merkle tree verification for StateGuard"
+
+[dependencies]
+aes-gcm = "0.10"
+chacha20poly1305 = "0.10"
+sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+base64 = "0.22"
+rand = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+rand = "0.8"

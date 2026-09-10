@@ -1,0 +1,22 @@
+[package]
+name = "redteam_simulations"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "End-to-end red-team attack reproduction and security validation suite"
+
+[dependencies]
+stateguard-crypto = { path = "../../crates/stateguard-crypto" }
+stateguard-scanner = { path = "../../crates/stateguard-scanner" }
+stateguard-vault = { path = "../../crates/stateguard-vault" }
+stateguard-proxy = { path = "../../crates/stateguard-proxy" }
+
+tokio = { version = "1.37", features = ["full"] }
+axum = { version = "0.7" }
+tower = { version = "0.4" }
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bytes = "1.6"
+futures-util = "0.3"

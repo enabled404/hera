@@ -1,0 +1,26 @@
+{
+  "name": "@stateguard/sdk",
+  "version": "0.1.0",
+  "description": "Enterprise Agent State Security Gateway & Trace Auditing TypeScript SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/sdk.test.js"
+  },
+  "keywords": [
+    "stateguard",
+    "security",
+    "ai",
+    "llm",
+    "gateway",
+    "cot",
+    "anthropic",
+    "openai"
+  ],
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.11.0"
+  }
+}

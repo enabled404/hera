@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stateguard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: stateguard
+      POSTGRES_USER: stateguard
+      POSTGRES_PASSWORD: stateguard_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./crates/stateguard-proxy/migrations/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stateguard -d stateguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: stateguard-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass stateguard_redis_secret
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "stateguard_redis_secret", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  proxy:
+    build:
+      context: .
+      dockerfile: crates/stateguard-proxy/Dockerfile
+    container_name: stateguard-proxy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://stateguard:stateguard_secret@postgres:5432/stateguard
+      REDIS_URL: redis://:stateguard_redis_secret@redis:6379/0
+      STATEGUARD_MODE: STATEFUL_VAULT
+      RUST_LOG: info,stateguard_proxy=debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: stateguard-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_PROXY_URL: http://proxy:8080
+      DATABASE_URL: postgres://stateguard:stateguard_secret@postgres:5432/stateguard
+    depends_on:
+      - proxy
+
+volumes:
+  pgdata:
+  redisdata:

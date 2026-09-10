@@ -1,0 +1,19 @@
+[package]
+name = "stateguard-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Static trace auditing and CI/CD security scanner for StateGuard"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+rayon = "1.10"
+walkdir = "2.5"
+comfy-table = "7.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+hex = "0.4"
+stateguard-scanner = { path = "../stateguard-scanner" }
+stateguard-crypto = { path = "../stateguard-crypto" }
