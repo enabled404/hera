@@ -1,4 +1,4 @@
-FROM rust:1.98-slim-bookworm as builder
+FROM rust:1-slim-bookworm as builder
 
 WORKDIR /usr/src/stateguard
 COPY Cargo.toml Cargo.lock* ./
