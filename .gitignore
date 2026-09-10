@@ -1,14 +1,14 @@
 # Rust
-/target/
+/target
 **/*.rs.bk
-Cargo.lock
 
-# Node / Next.js
-/dashboard/node_modules/
-/dashboard/.next/
-/dashboard/out/
-/sdks/typescript/node_modules/
-/sdks/typescript/dist/
+# Node / JavaScript / Next.js
+node_modules
+/node_modules
+/.next
+/dist
+.next
+out
 
 # Python
 __pycache__/
@@ -18,10 +18,15 @@ __pycache__/
 /sdks/python/build/
 /sdks/python/dist/
 
-# Environment and IDE
+# Package archives & reports
+*.tar.gz
+*.sarif
+output.sarif
+
+# Environment & local settings
 .env
+.env*.local
 .env.local
 .DS_Store
 *.swp
 *.log
-output.sarif

@@ -1,0 +1,24 @@
+{
+  "trace_id": "trace-42",
+  "task": "Automated security scrub",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Please scrub AKIAIOSFODNN7EXAMPLE from repo settings"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "Analyzing configuration files for AWS credentials...",
+          "signature": "ZXlKaGJHY2lPaUpTVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LkFLSUFJT1NGT0ROTjdFWEFNUExFLlhZWg=="
+        },
+        {
+          "type": "text",
+          "text": "Removed AWS key from settings.py successfully."
+        }
+      ]
+    }
+  ]
+}
