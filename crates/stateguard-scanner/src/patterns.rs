@@ -78,7 +78,7 @@ impl PatternEngine {
                 SecretKind::AnthropicApiKey,
             ),
             (
-                Regex::new(r"sk-(?:proj-)?[a-zA-Z0-9_\-]{28,}").unwrap(),
+                Regex::new(r"sk-(?:proj-|astra-)?[a-zA-Z0-9_\-]{20,}").unwrap(),
                 SecretKind::OpenAiApiKey,
             ),
             (
@@ -189,6 +189,8 @@ mod tests {
         let engine = PatternEngine::new();
         let input = r#"
             Here is my Anthropic key: sk-ant-api03-abcdef12345678901234567890_ABCD
+            OpenAI Astra: sk-astra-abcdefghijklmnopqrstuvwxyz1234567890
+            Gemini: AIzaSyD3abcdefghijklmnopqrstuvwxyz12345
             Database: postgres://user:password@db.example.com:5432/production
             Private: -----BEGIN PRIVATE KEY-----
             MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3
@@ -198,6 +200,8 @@ mod tests {
         let kinds: Vec<SecretKind> = findings.iter().map(|f| f.kind).collect();
 
         assert!(kinds.contains(&SecretKind::AnthropicApiKey));
+        assert!(kinds.contains(&SecretKind::OpenAiApiKey));
+        assert!(kinds.contains(&SecretKind::GeminiApiKey));
         assert!(kinds.contains(&SecretKind::DatabaseUrl));
         assert!(kinds.contains(&SecretKind::PrivateKeyHeader));
     }

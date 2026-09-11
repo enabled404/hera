@@ -157,6 +157,69 @@ impl ContextBinding {
         }
         Ok(())
     }
+
+    /// Verifies if bound model state can be safely re-used or migrated to a target model without downgrade.
+    pub fn is_lineage_compatible(&self, target_model: &str) -> bool {
+        is_model_compatible(&self.model_id, target_model)
+    }
+}
+
+/// Checks if reasoning state from model A can be executed on model B according to frontier lineage rules.
+pub fn is_model_compatible(bound_model: &str, target_model: &str) -> bool {
+    let b = bound_model.to_lowercase();
+    let t = target_model.to_lowercase();
+
+    if b == t {
+        return true;
+    }
+
+    // Disallow Opus / Fable -> Haiku downgrade (e.g., claude-fable-5-1, claude-opus-4-8 -> claude-haiku-4-5)
+    if (b.contains("opus") || b.contains("fable")) && t.contains("haiku") {
+        return false;
+    }
+
+    // Disallow OpenAI frontier (Astra / Sol / Luna / GPT-5 / o1 / o3) -> mini/nano downgrade
+    if (b.contains("astra")
+        || b.contains("sol")
+        || b.contains("luna")
+        || b.contains("gpt-5")
+        || b.contains("o1")
+        || b.contains("o3"))
+        && (t.contains("mini") || t.contains("nano"))
+    {
+        return false;
+    }
+
+    // Disallow Gemini Pro / Ultra / Robotics -> Flash downgrade (e.g. gemini-3-pro, gemini-robotics-1-6 -> gemini-3-8-flash)
+    if (b.contains("pro") || b.contains("ultra") || b.contains("robotics"))
+        && t.contains("flash")
+    {
+        return false;
+    }
+
+    // Require matching model family
+    let b_family = extract_model_family(&b);
+    let t_family = extract_model_family(&t);
+    b_family == t_family
+}
+
+pub fn extract_model_family(model: &str) -> &'static str {
+    if model.contains("claude") || model.contains("fable") {
+        "claude"
+    } else if model.contains("gpt")
+        || model.contains("o1")
+        || model.contains("o3")
+        || model.contains("astra")
+        || model.contains("sol")
+        || model.contains("luna")
+        || model.contains("openai")
+    {
+        "openai"
+    } else if model.contains("gemini") || model.contains("robotics") {
+        "gemini"
+    } else {
+        "unknown"
+    }
 }
 
 /// Cryptographically bound outer envelope wrapping provider reasoning tokens.

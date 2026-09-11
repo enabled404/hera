@@ -118,6 +118,31 @@ mod tests {
     }
 
     #[test]
+    fn test_frontier_model_lineage_protection() {
+        use crate::aead::is_model_compatible;
+
+        // Claude / Fable tier checks
+        assert!(!is_model_compatible("claude-fable-5-1", "claude-haiku-4-5"));
+        assert!(!is_model_compatible("claude-opus-4-8", "claude-haiku-4-5"));
+        assert!(is_model_compatible("claude-opus-4-8", "claude-sonnet-4-6"));
+
+        // OpenAI tier checks (Astra / Sol / Luna / o3 / o1)
+        assert!(!is_model_compatible("openai-astra", "o3-mini"));
+        assert!(!is_model_compatible("gpt-5.6-sol", "gpt-4o-mini"));
+        assert!(is_model_compatible("gpt-5.6-sol", "gpt-5.6-luna"));
+        assert!(is_model_compatible("o1", "o1"));
+
+        // Gemini tier checks (Pro / Robotics vs Flash)
+        assert!(!is_model_compatible("gemini-3-pro", "gemini-3-8-flash"));
+        assert!(!is_model_compatible("gemini-robotics-1-6", "gemini-3-flash"));
+        assert!(is_model_compatible("gemini-3-8-flash", "gemini-3-flash"));
+
+        // Cross-family rejection
+        assert!(!is_model_compatible("claude-fable-5-1", "openai-astra"));
+        assert!(!is_model_compatible("gemini-3-pro", "gpt-5.6-sol"));
+    }
+
+    #[test]
     fn test_reject_tampered_ciphertext() {
         let ctx = ContextBinding::new("tenant-1", "user-1", "sess-1", 1, "claude-opus-4.8");
         let mut env = AeadEnvelopeHandler::encrypt(

@@ -398,18 +398,27 @@ pub fn is_model_compatible(bound_model: &str, target_model: &str) -> bool {
         return true;
     }
 
-    // Disallow Opus -> Haiku downgrade
-    if b.contains("opus") && t.contains("haiku") {
+    // Disallow Opus / Fable -> Haiku downgrade (e.g. claude-fable-5-1, claude-opus-4-8 -> claude-haiku-4-5)
+    if (b.contains("opus") || b.contains("fable")) && t.contains("haiku") {
         return false;
     }
 
-    // Disallow GPT-5 / o1 / o3 -> 4o-mini downgrade
-    if (b.contains("gpt-5") || b.contains("o1") || b.contains("o3")) && t.contains("mini") {
+    // Disallow OpenAI frontier (Astra / Sol / Luna / GPT-5 / o1 / o3) -> mini/nano downgrade (e.g. o3-mini, 4o-mini)
+    if (b.contains("astra")
+        || b.contains("sol")
+        || b.contains("luna")
+        || b.contains("gpt-5")
+        || b.contains("o1")
+        || b.contains("o3"))
+        && (t.contains("mini") || t.contains("nano"))
+    {
         return false;
     }
 
-    // Disallow Gemini Pro/Ultra -> Flash downgrade
-    if (b.contains("pro") || b.contains("ultra")) && t.contains("flash") {
+    // Disallow Gemini Pro / Ultra / Robotics -> Flash downgrade (e.g. gemini-3-pro, gemini-robotics-1-6 -> gemini-3-8-flash)
+    if (b.contains("pro") || b.contains("ultra") || b.contains("robotics"))
+        && t.contains("flash")
+    {
         return false;
     }
 
@@ -420,11 +429,18 @@ pub fn is_model_compatible(bound_model: &str, target_model: &str) -> bool {
 }
 
 fn extract_family(model: &str) -> &'static str {
-    if model.contains("claude") {
+    if model.contains("claude") || model.contains("fable") {
         "claude"
-    } else if model.contains("gpt") || model.contains("o1") || model.contains("o3") {
+    } else if model.contains("gpt")
+        || model.contains("o1")
+        || model.contains("o3")
+        || model.contains("astra")
+        || model.contains("sol")
+        || model.contains("luna")
+        || model.contains("openai")
+    {
         "openai"
-    } else if model.contains("gemini") {
+    } else if model.contains("gemini") || model.contains("robotics") {
         "gemini"
     } else {
         "unknown"
