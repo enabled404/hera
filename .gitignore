@@ -30,3 +30,4 @@ output.sarif
 .DS_Store
 *.swp
 *.log
+.vercel

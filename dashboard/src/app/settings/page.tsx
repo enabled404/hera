@@ -48,7 +48,7 @@ export default function SettingsPolicyPage() {
                 Stateful Ephemeral Vault (Recommended)
               </div>
               <div className="text-xs text-slate-400 mt-1.5">
-                Strips provider reasoning envelopes entirely. Clients receive opaque $\text{UUIDv7} \parallel \text{CSPRNG}(256\text{-bit})$ handles stored in-memory with strict TTLs.
+                Strips provider reasoning envelopes entirely. Clients receive opaque UUIDv7 / CSPRNG(256-bit) handles stored in-memory with strict TTLs.
               </div>
             </div>
 
