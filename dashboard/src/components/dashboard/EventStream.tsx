@@ -12,6 +12,8 @@ import {
   Clock,
   Lock,
   ArrowRight,
+  Activity,
+  Terminal,
 } from "lucide-react";
 
 export interface SecurityEvent {
@@ -36,6 +38,7 @@ export default function EventStream({ events }: EventStreamProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [copiedCurl, setCopiedCurl] = useState<boolean>(false);
 
   // Compute counts for filter pills
   const counts = {
@@ -72,6 +75,18 @@ export default function EventStream({ events }: EventStreamProps) {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyCurlReproducer = (evt: SecurityEvent) => {
+    const curl = `curl -X POST http://127.0.0.1:8080/v1/chat/completions \\
+  -H "X-StateGuard-Tenant: ${evt.tenant_id}" \\
+  -H "X-StateGuard-User: ${evt.user_id || "user-alice"}" \\
+  -H "X-StateGuard-Session: ${evt.session_id || "sess-491"}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "${evt.model || "claude-3-7-sonnet"}", "fingerprint": "${evt.payload_fingerprint}"}'`;
+    navigator.clipboard.writeText(curl);
+    setCopiedCurl(true);
+    setTimeout(() => setCopiedCurl(false), 2000);
   };
 
   const getStatusPill = (eventType: string) => {
@@ -234,7 +249,7 @@ export default function EventStream({ events }: EventStreamProps) {
         )}
       </div>
 
-      {/* INSPECTION MODAL / DRAWER */}
+      {/* INSPECTION MODAL / FORENSIC DRAWER */}
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-enter-down">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl glass-panel border border-white/[0.12] p-5 sm:p-6 shadow-2xl space-y-5">
@@ -255,6 +270,15 @@ export default function EventStream({ events }: EventStreamProps) {
 
               <div className="flex items-center space-x-2">
                 <button
+                  onClick={() => copyCurlReproducer(selectedEvent)}
+                  className="hidden sm:flex items-center space-x-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-zinc-300 transition"
+                  title="Copy cURL command"
+                >
+                  <Terminal className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>{copiedCurl ? "cURL Copied" : "Copy cURL"}</span>
+                </button>
+
+                <button
                   onClick={() =>
                     copyToClipboard(JSON.stringify(selectedEvent, null, 2))
                   }
@@ -263,7 +287,7 @@ export default function EventStream({ events }: EventStreamProps) {
                   {copied ? (
                     <Check className="h-3.5 w-3.5 text-emerald-400" />
                   ) : (
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className="h-3.5 w-3.5 text-zinc-400" />
                   )}
                   <span>{copied ? "Copied" : "Copy JSON"}</span>
                 </button>
@@ -303,7 +327,7 @@ export default function EventStream({ events }: EventStreamProps) {
               </div>
             </div>
 
-            {/* Side-by-Side Payload Comparison (Before vs After) */}
+            {/* Side-by-Side Payload Comparison (Before vs After) with line diff colors */}
             <div className="space-y-2">
               <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-400">
                 1. Inbound Malicious Payload (Before) vs. Gateway Defense Action (After)
@@ -322,30 +346,26 @@ export default function EventStream({ events }: EventStreamProps) {
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-[11px] text-zinc-300">
-                    <div>
-                      <span className="text-zinc-500">Origin Tenant: </span>
-                      <span className="text-rose-300 font-semibold">
-                        {selectedEvent.metadata.bound_tenant || "tenant-alpha"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500">Origin User: </span>
-                      <span className="text-rose-300 font-semibold">
-                        {selectedEvent.metadata.bound_user || "user-alice"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500">Attempted Target: </span>
-                      <span className="text-rose-400 font-semibold">
-                        {selectedEvent.metadata.attempted_user || selectedEvent.metadata.target_model || "user-bob"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500">Thinking Signature: </span>
-                      <span className="text-zinc-400 break-all">
-                        {selectedEvent.payload_fingerprint || "sgh_0191e4a2-8b3c-7890-a1b2-c3d4e5f6a7b8"}
-                      </span>
+                  <div className="space-y-1.5 text-[11px] text-zinc-300">
+                    <div className="bg-rose-950/20 p-2 rounded border border-rose-500/20 space-y-1">
+                      <div>
+                        <span className="text-zinc-500">- User Identity: </span>
+                        <span className="text-rose-400 font-semibold">
+                          {selectedEvent.metadata.attempted_user || selectedEvent.user_id || "user-bob"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">- Token Issuer: </span>
+                        <span className="text-rose-300">
+                          {selectedEvent.metadata.bound_user || "user-alice"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">- Thinking Envelope: </span>
+                        <span className="text-rose-400 break-all">
+                          {selectedEvent.payload_fingerprint || "eyJlbmMiOiJBMjU2R0NNIn0..."}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -362,34 +382,28 @@ export default function EventStream({ events }: EventStreamProps) {
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-[11px] text-zinc-300">
-                    <div>
-                      <span className="text-zinc-500">HTTP Verdict: </span>
-                      <span
-                        className={`font-semibold ${
-                          selectedEvent.event_type === "SECRET_IN_STATE"
-                            ? "text-amber-300"
-                            : "text-rose-300"
-                        }`}
-                      >
-                        {selectedEvent.event_type === "SECRET_IN_STATE"
-                          ? "200 OK (Clean Redaction)"
-                          : "403 Forbidden (Drop Connection)"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500">Action: </span>
-                      <span className="text-emerald-400 font-semibold">
-                        {selectedEvent.event_type === "SECRET_IN_STATE"
-                          ? "Scrubbed in-flight before APM export"
-                          : "Dropped at ingress; zero bytes forwarded upstream"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500">Invariant: </span>
-                      <span className="text-zinc-200 font-semibold">
-                        {getInvariantText(selectedEvent)}
-                      </span>
+                  <div className="space-y-1.5 text-[11px] text-zinc-300">
+                    <div className="bg-emerald-950/20 p-2 rounded border border-emerald-500/20 space-y-1">
+                      <div>
+                        <span className="text-zinc-500">+ HTTP Status: </span>
+                        <span className="text-emerald-300 font-semibold">
+                          {selectedEvent.event_type === "SECRET_IN_STATE"
+                            ? "200 OK (Clean Redaction)"
+                            : "403 Forbidden (StateIntegrityViolation)"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">+ Ephemeral State: </span>
+                        <span className="text-emerald-400 font-semibold">
+                          Vaulted to Redis RAM &bull; Client receives sgh_018f3a9b
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">+ Defense Guarantee: </span>
+                        <span className="text-zinc-200">
+                          {getInvariantText(selectedEvent)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -418,7 +432,7 @@ export default function EventStream({ events }: EventStreamProps) {
                 </div>
                 <div className="p-2 rounded-lg bg-zinc-900/60 border border-white/[0.04]">
                   <span className="text-zinc-500 block mb-0.5">Sequence Ordinality</span>
-                  <span className="text-zinc-300">Turn #2 (Monotonic)</span>
+                  <span className="text-zinc-300">Turn #{selectedEvent.metadata.turn || 2} (Monotonic)</span>
                 </div>
               </div>
             </div>

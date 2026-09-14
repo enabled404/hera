@@ -11,6 +11,8 @@ import {
   RotateCcw,
   Copy,
   Check,
+  Cpu,
+  Lock,
 } from "lucide-react";
 
 export interface SimulationResult {
@@ -133,6 +135,7 @@ Content-Type: application/json
 export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorProps) {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>("test-a");
   const [isSimulating, setIsSimulating] = useState(false);
+  const [pipelineStep, setPipelineStep] = useState<number>(0);
   const [lastResult, setLastResult] = useState<SimulationResult | null>(null);
   const [copiedPayload, setCopiedPayload] = useState(false);
 
@@ -141,9 +144,20 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
   const handleSimulate = () => {
     setIsSimulating(true);
     setLastResult(null);
+    setPipelineStep(1);
 
     setTimeout(() => {
+      setPipelineStep(2);
+    }, 150);
+
+    setTimeout(() => {
+      setPipelineStep(3);
+    }, 300);
+
+    setTimeout(() => {
+      setPipelineStep(4);
       setIsSimulating(false);
+
       const result: SimulationResult = {
         attackType: currentScenario.type,
         status: currentScenario.mockDefense.status,
@@ -156,7 +170,7 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
 
       setLastResult(result);
       onAttackTriggered(result);
-    }, 400);
+    }, 450);
   };
 
   const handleCopyPayload = () => {
@@ -191,6 +205,7 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
                 onClick={() => {
                   setSelectedScenarioId(sc.id);
                   setLastResult(null);
+                  setPipelineStep(0);
                 }}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition shrink-0 ${
                   isSelected
@@ -247,7 +262,7 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
           </pre>
 
           <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-zinc-500">
-            <span>Destination: 127.0.0.1:8080 (Hera Proxy)</span>
+            <span>Destination: 127.0.0.1:8080 (Hera Ingress)</span>
             <span>SIMD Transport Active</span>
           </div>
         </div>
@@ -266,11 +281,29 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
             <button
               onClick={handleSimulate}
               disabled={isSimulating}
-              className="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 font-sans font-semibold text-xs text-black transition active:scale-[0.98] disabled:opacity-50 flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+              className="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 font-sans font-semibold text-xs text-black transition active:scale-[0.98] disabled:opacity-50 flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(16,185,129,0.25)] btn-shine"
             >
               <Play className={`h-3.5 w-3.5 fill-black ${isSimulating ? "animate-spin" : ""}`} />
               <span>{isSimulating ? "Evaluating Security Invariants..." : "Simulate Adversarial Attack"}</span>
             </button>
+
+            {/* Step-by-Step Pipeline Trace during Simulation */}
+            {isSimulating && (
+              <div className="p-3 rounded-xl bg-black/60 border border-white/[0.08] font-mono text-[11px] text-zinc-300 space-y-1 animate-enter-down">
+                <div className={pipelineStep >= 1 ? "text-emerald-400" : "text-zinc-600"}>
+                  &bull; [0.02ms] Inbound TCP stream framed &amp; parsed
+                </div>
+                <div className={pipelineStep >= 2 ? "text-emerald-400" : "text-zinc-600"}>
+                  &bull; [0.11ms] Context tuple extracted (tenant, user, turn)
+                </div>
+                <div className={pipelineStep >= 3 ? "text-emerald-400" : "text-zinc-600"}>
+                  &bull; [0.24ms] AEAD / HMAC sequence ratchet computed
+                </div>
+                <div className={pipelineStep >= 4 ? "text-emerald-400" : "text-zinc-600"}>
+                  &bull; [0.38ms] Security Invariant verdict rendered
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Verdict Box */}
@@ -299,14 +332,14 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
                 {lastResult.message}
               </p>
             </div>
-          ) : (
+          ) : !isSimulating ? (
             <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06] text-center space-y-1">
               <div className="text-xs font-mono text-zinc-500">Gateway Standby</div>
               <p className="text-[11px] text-zinc-500 font-sans">
                 Click above to execute simulated exploit and inspect response.
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

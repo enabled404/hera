@@ -7,6 +7,7 @@ import ExploitVisualizer from "@/components/landing/ExploitVisualizer";
 import ThreatMatrix from "@/components/landing/ThreatMatrix";
 import ArchitecturePillars from "@/components/landing/ArchitecturePillars";
 import BenchmarkGrid from "@/components/landing/BenchmarkGrid";
+import CliTerminal from "@/components/landing/CliTerminal";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export default function LandingPage() {
@@ -19,6 +20,7 @@ export default function LandingPage() {
         <ThreatMatrix />
         <ArchitecturePillars />
         <BenchmarkGrid />
+        <CliTerminal />
       </main>
       <LandingFooter />
     </div>
