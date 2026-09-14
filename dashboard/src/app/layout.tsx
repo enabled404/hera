@@ -1,10 +1,10 @@
 import "./globals.css";
 import React from "react";
-import Navbar from "@/components/Navbar";
 
 export const metadata = {
-  title: "Hera StateGuard — Enterprise AI State Vault & SOC Gateway",
-  description: "Cryptographic state vaulting, Merkle DAG lineage verification, and trace auditing platform for autonomous LLM agents.",
+  title: "Hera StateGuard — Zero-Trust State Security for Autonomous AI Agents",
+  description:
+    "Cryptographic state vaulting, Merkle DAG lineage verification, and in-flight streaming secret redaction for frontier reasoning LLMs (arXiv:2608.09867).",
 };
 
 export default function RootLayout({
@@ -15,45 +15,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-[#050506] text-zinc-100 antialiased flex flex-col font-sans selection:bg-emerald-500/20 selection:text-emerald-200">
-        <Navbar />
-
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {children}
-        </main>
-
-        <footer className="border-t border-white/[0.06] bg-[#050506]/90 backdrop-blur py-5 text-xs text-zinc-500 font-mono">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center space-x-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-              <span className="text-zinc-400 font-medium font-sans">HERA / STATEGUARD</span>
-              <span className="text-zinc-700">|</span>
-              <span className="text-zinc-500">Autonomous Agent Cryptographic Gateway</span>
-            </div>
-            <div className="flex items-center space-x-4 text-zinc-400">
-              <a
-                href="https://github.com/enabled404/hera"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition"
-              >
-                GitHub
-              </a>
-              <span className="text-zinc-700">&bull;</span>
-              <a
-                href="https://saadkhalidhere.vercel.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-emerald-400 transition"
-              >
-                Saad Khalid (Lead Architect)
-              </a>
-              <span className="text-zinc-700">&bull;</span>
-              <span className="text-zinc-600">v1.1 Enterprise</span>
-            </div>
-          </div>
-        </footer>
+        {children}
       </body>
     </html>
   );
 }
-
