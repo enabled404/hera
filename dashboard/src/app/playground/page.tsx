@@ -155,31 +155,31 @@ export default function TracePlaygroundPage() {
   return (
     <div className="space-y-8 animate-enter-down">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center rounded-md bg-cyan-950/50 border border-cyan-500/30 px-2.5 py-1 text-xs font-mono font-medium text-cyan-400">
-              <Terminal className="mr-1.5 h-3.5 w-3.5" />
-              TRACE SANITIZER PLAYGROUND
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+              Trace Sanitizer Playground
             </span>
-            <span className="text-xs text-slate-500 font-mono">Real-time Entropy Filter</span>
+            <span className="text-xs text-zinc-500 font-mono">· Real-time Entropy Filter</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white font-sans mt-2">
-            Streaming Entropy & Redaction Sandbox
+          <h1 className="text-2xl font-bold tracking-tight text-white font-sans mt-1">
+            Streaming Entropy &amp; Redaction Sandbox
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+          <p className="text-xs text-zinc-400 mt-0.5 max-w-2xl font-sans">
             Test raw agent reasoning, tool payloads, and telemetry traces against the StateGuard streaming Shannon entropy scanner before LLM ingress.
           </p>
         </div>
 
         {/* Preset Selector */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-500 font-mono mr-1">Load Preset:</span>
+          <span className="text-xs text-zinc-500 font-mono mr-1">Load Preset:</span>
           {PRESETS.map((p) => (
             <button
               key={p.name}
               onClick={() => setInputPayload(p.payload)}
-              className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-slate-300 hover:text-white transition"
+              className="px-2.5 py-1 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] text-xs font-mono text-zinc-300 hover:text-white transition"
             >
               {p.name.split(" ")[0]}
             </button>
@@ -191,9 +191,9 @@ export default function TracePlaygroundPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Max Entropy */}
         <div className="glass-card rounded-xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
             <span>Peak Window Entropy</span>
-            <span className="text-[10px] text-slate-500">32-char sliding</span>
+            <span className="text-[10px] text-zinc-500">32-char sliding</span>
           </div>
           <div className="flex items-baseline space-x-2">
             <span
@@ -207,7 +207,7 @@ export default function TracePlaygroundPage() {
             >
               {analysis.maxEntropy}
             </span>
-            <span className="text-xs text-slate-500 font-mono">bits / char</span>
+            <span className="text-xs text-zinc-500 font-mono">bits / char</span>
           </div>
           <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden">
             <div
@@ -225,21 +225,21 @@ export default function TracePlaygroundPage() {
 
         {/* Metric 2: Secrets Trapped */}
         <div className="glass-card rounded-xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
             <span>Interception Matches</span>
-            <span className="text-[10px] text-slate-500">Regex + Shannon</span>
+            <span className="text-[10px] text-zinc-500">Regex + Shannon</span>
           </div>
           <div className="flex items-baseline space-x-2">
             <span
               className={`text-2xl font-bold font-mono ${
-                analysis.findings.length > 0 ? "text-amber-400" : "text-slate-200"
+                analysis.findings.length > 0 ? "text-amber-400" : "text-zinc-200"
               }`}
             >
               {analysis.findings.length}
             </span>
-            <span className="text-xs text-slate-500 font-mono">tokens trapped</span>
+            <span className="text-xs text-zinc-500 font-mono">tokens trapped</span>
           </div>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <div className="text-[10px] text-zinc-500 font-mono">
             {analysis.findings.length > 0
               ? `${analysis.findings.length} secret(s) masked inline`
               : "Zero sensitive token signatures"}
@@ -248,15 +248,15 @@ export default function TracePlaygroundPage() {
 
         {/* Metric 3: Scanner Status */}
         <div className="glass-card rounded-xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
             <span>Gateway Ingress Verdict</span>
-            <span className="text-[10px] text-slate-500">Zero-Trust</span>
+            <span className="text-[10px] text-zinc-500">Zero-Trust</span>
           </div>
           <div className="flex items-center space-x-2">
             {analysis.isBlocked ? (
               <span className="inline-flex items-center rounded-md bg-rose-950/60 border border-rose-500/40 px-2.5 py-1 text-xs font-mono text-rose-300">
                 <ShieldAlert className="h-3.5 w-3.5 mr-1.5 text-rose-400" />
-                SANITIZED & REDACTED
+                SANITIZED &amp; REDACTED
               </span>
             ) : (
               <span className="inline-flex items-center rounded-md bg-emerald-950/50 border border-emerald-500/40 px-2.5 py-1 text-xs font-mono text-emerald-300">
@@ -265,16 +265,16 @@ export default function TracePlaygroundPage() {
               </span>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <div className="text-[10px] text-zinc-500 font-mono">
             Evaluated in &lt; 0.35ms streaming window
           </div>
         </div>
 
         {/* Metric 4: Threshold Controller */}
         <div className="glass-card rounded-xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
             <span>Entropy Cutoff</span>
-            <span className="text-xs text-cyan-400 font-mono">{entropyThreshold} bits</span>
+            <span className="text-xs text-emerald-400 font-mono">{entropyThreshold} bits</span>
           </div>
           <input
             type="range"
@@ -283,9 +283,9 @@ export default function TracePlaygroundPage() {
             step="0.1"
             value={entropyThreshold}
             onChange={(e) => setEntropyThreshold(Number(e.target.value))}
-            className="w-full accent-cyan-400 cursor-pointer"
+            className="w-full accent-emerald-500 cursor-pointer"
           />
-          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+          <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
             <span>3.0 (Strict)</span>
             <span>5.5 (Permissive)</span>
           </div>
@@ -297,11 +297,11 @@ export default function TracePlaygroundPage() {
         {/* Left: Raw Input */}
         <div className="glass-panel rounded-xl p-5 space-y-3 flex flex-col">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-xs font-mono font-medium text-slate-300">
+            <div className="flex items-center space-x-2 text-xs font-mono font-medium text-zinc-300">
               <span className="h-2 w-2 rounded-full bg-rose-400"></span>
               <span>Raw Inbound Payload / OTel Trace</span>
             </div>
-            <span className="text-[10px] font-mono text-slate-500">
+            <span className="text-[10px] font-mono text-zinc-500">
               {inputPayload.length} chars
             </span>
           </div>
@@ -311,13 +311,13 @@ export default function TracePlaygroundPage() {
             value={inputPayload}
             onChange={(e) => setInputPayload(e.target.value)}
             placeholder="Paste raw agent prompt, function call, or telemetry payload here..."
-            className="w-full flex-1 bg-black/60 border border-white/[0.08] focus:border-cyan-500/50 rounded-lg p-3.5 font-mono text-xs text-slate-200 focus:outline-none resize-none leading-relaxed selection:bg-rose-500/30"
+            className="w-full flex-1 bg-black/60 border border-white/[0.08] focus:border-zinc-500 rounded-lg p-3.5 font-mono text-xs text-zinc-200 focus:outline-none resize-none leading-relaxed selection:bg-zinc-800"
           />
 
           {/* Trapped Findings List */}
           {analysis.findings.length > 0 && (
             <div className="space-y-1.5 pt-2 border-t border-white/[0.06]">
-              <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">
+              <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold">
                 Intercepted Token Signatures ({analysis.findings.length})
               </div>
               <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
@@ -328,7 +328,7 @@ export default function TracePlaygroundPage() {
                   >
                     <div className="flex items-center space-x-2">
                       <span className="text-rose-400 font-semibold">{f.type}</span>
-                      <span className="text-slate-500 truncate max-w-[160px]">
+                      <span className="text-zinc-500 truncate max-w-[160px]">
                         {f.matchedText.slice(0, 16)}...
                       </span>
                     </div>
@@ -343,14 +343,14 @@ export default function TracePlaygroundPage() {
         {/* Right: Sanitized Output */}
         <div className="glass-panel rounded-xl p-5 space-y-3 flex flex-col">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-xs font-mono font-medium text-slate-300">
+            <div className="flex items-center space-x-2 text-xs font-mono font-medium text-zinc-300">
               <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
               <span>Sanitized Output (Safe for LLM Ingress)</span>
             </div>
 
             <button
               onClick={handleCopyRedacted}
-              className="text-[11px] font-mono text-slate-400 hover:text-white flex items-center space-x-1"
+              className="text-[11px] font-mono text-zinc-400 hover:text-white flex items-center space-x-1 transition"
             >
               {copiedRedacted ? (
                 <>
@@ -366,7 +366,7 @@ export default function TracePlaygroundPage() {
             </button>
           </div>
 
-          <div className="w-full flex-1 bg-black/60 border border-white/[0.08] rounded-lg p-3.5 font-mono text-xs text-emerald-300 whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[380px] select-all">
+          <div className="w-full flex-1 bg-black/60 border border-white/[0.08] rounded-lg p-3.5 font-mono text-xs text-emerald-300/90 whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[380px] select-all">
             {analysis.redactedText}
           </div>
 

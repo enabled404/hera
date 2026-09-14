@@ -264,51 +264,50 @@ export default function SessionAuditPage() {
   return (
     <div className="space-y-8 animate-enter-down">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center rounded-md bg-cyan-950/50 border border-cyan-500/30 px-2.5 py-1 text-xs font-mono font-medium text-cyan-400">
-              <GitFork className="mr-1.5 h-3.5 w-3.5" />
-              DAG & MERKLE AUDITOR
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+              DAG &amp; Merkle Lineage Auditor
             </span>
-            <span className="text-xs text-slate-500 font-mono">v1.1 DAG-Aware Engine</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white font-sans mt-2">
-            Agent Tree-of-Thought & Merkle DAG Lineage
+          <h1 className="text-2xl font-bold tracking-tight text-white font-sans mt-1">
+            Agent Tree-of-Thought &amp; Merkle State
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+          <p className="text-xs text-zinc-400 mt-0.5 max-w-2xl font-sans">
             Audit turn monotonic ordinality, parallel sub-agent branching, and subtree Merkle inclusion proofs in real-time.
           </p>
         </div>
 
         {/* Global Verification Actions */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5 self-start sm:self-auto">
           <button
             onClick={handleForkBranchGamma}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-xs font-mono text-slate-300 hover:text-white transition"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] text-xs font-mono text-zinc-300 hover:text-white transition"
           >
-            <GitBranch className="h-3.5 w-3.5 text-indigo-400" />
-            <span>+ Fork Sub-agent Branch</span>
+            <GitBranch className="h-3 w-3 text-zinc-400" />
+            <span>+ Fork Sub-agent</span>
           </button>
 
           <button
             onClick={handleVerifyTree}
             disabled={isVerifying}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 font-sans font-medium text-xs text-black shadow-[0_0_20px_rgba(6,182,212,0.3)] transition"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 font-sans font-medium text-xs text-black transition active:scale-[0.99] disabled:opacity-50"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isVerifying ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3 w-3 ${isVerifying ? "animate-spin" : ""}`} />
             <span>Verify Merkle State</span>
           </button>
         </div>
       </div>
 
       {/* Main Grid: Left Sessions / Center Visual DAG / Right Node Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: Session Selector (3 cols) */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider flex items-center justify-between">
+        <div className="lg:col-span-3 space-y-3">
+          <div className="text-xs font-mono font-medium text-zinc-400 uppercase tracking-wider flex items-center justify-between">
             <span>Bound Sessions ({sessions.length})</span>
-            <span className="text-[10px] text-emerald-400">Zero-Trust</span>
+            <span className="text-[10px] text-emerald-400 font-mono">Zero-Trust</span>
           </div>
 
           <div className="space-y-2">
@@ -323,24 +322,24 @@ export default function SessionAuditPage() {
                     setIsTampered(false);
                     setVerifySuccess(null);
                   }}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                  className={`p-3 rounded-xl border cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-zinc-900/80 border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
-                      : "bg-zinc-950/40 border-white/[0.06] hover:border-white/[0.14] hover:bg-zinc-900/30"
+                      ? "bg-zinc-900/90 border-emerald-500/40 shadow-sm"
+                      : "bg-[#0c0c0e]/60 border-white/[0.06] hover:border-white/[0.12] hover:bg-zinc-900/40"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-semibold text-white truncate">
                       {sess.name}
                     </span>
-                    <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-500/20 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-mono text-zinc-300 bg-zinc-800 px-1.5 py-0.5 rounded border border-white/[0.06]">
                       T#{sess.headTurn}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 font-mono mt-2 truncate">
-                    User: <span className="text-slate-200">{sess.boundUserId}</span>
+                  <div className="text-[11px] text-zinc-400 font-mono mt-1.5 truncate">
+                    User: <span className="text-zinc-200">{sess.boundUserId}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono mt-1">
+                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono mt-1">
                     <span>{sess.modelFamily}</span>
                     <span>{sess.lastActive}</span>
                   </div>
@@ -352,13 +351,13 @@ export default function SessionAuditPage() {
           {/* Root Merkle Box */}
           <div className="glass-card rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center">
-                <Fingerprint className="mr-1.5 h-3.5 w-3.5 text-cyan-400" />
+              <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 flex items-center">
+                <Fingerprint className="mr-1.5 h-3.5 w-3.5 text-zinc-400" />
                 Root Merkle Digest
               </span>
               <button
                 onClick={handleCopyRoot}
-                className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center space-x-1"
+                className="text-[10px] font-mono text-zinc-400 hover:text-white flex items-center space-x-1"
                 title="Copy Merkle Root"
               >
                 {copiedRoot ? (
@@ -374,10 +373,10 @@ export default function SessionAuditPage() {
                 )}
               </button>
             </div>
-            <div className="font-mono text-[11px] text-cyan-300 break-all bg-black/50 p-2.5 rounded-lg border border-white/[0.06] leading-relaxed select-all">
+            <div className="font-mono text-[11px] text-zinc-300 break-all bg-black/50 p-2.5 rounded-lg border border-white/[0.06] leading-relaxed select-all">
               {currentSession.merkleRoot}
             </div>
-            <div className="text-[10px] text-slate-500 font-mono flex items-center space-x-1">
+            <div className="text-[10px] text-zinc-500 font-mono flex items-center space-x-1">
               <Lock className="h-3 w-3 text-emerald-400" />
               <span>Immutable cryptographic anchor</span>
             </div>
@@ -385,10 +384,10 @@ export default function SessionAuditPage() {
         </div>
 
         {/* Center Column: Visual DAG Flow (5 cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider flex items-center space-x-2">
-              <Layers className="h-3.5 w-3.5 text-cyan-400" />
+            <div className="text-xs font-mono font-medium text-zinc-400 uppercase tracking-wider flex items-center space-x-2">
+              <Layers className="h-3.5 w-3.5 text-zinc-400" />
               <span>Merkle State DAG Nodes</span>
             </div>
 
@@ -416,12 +415,12 @@ export default function SessionAuditPage() {
           </div>
 
           {/* Node Flow Visualizer */}
-          <div className="glass-panel rounded-xl p-5 space-y-3 relative overflow-hidden">
-            <div className="text-[11px] text-slate-500 font-mono mb-2">
+          <div className="glass-panel rounded-xl p-4 space-y-3 relative overflow-hidden">
+            <div className="text-[11px] text-zinc-400 font-mono">
               Click any turn or sub-agent branch to inspect cryptographic state and witness path.
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {currentSession.nodes.map((node) => {
                 const isSelected = node.id === selectedNodeId;
                 const isForked = node.branch !== "main";
@@ -430,33 +429,33 @@ export default function SessionAuditPage() {
                   <div
                     key={node.id}
                     onClick={() => setSelectedNodeId(node.id)}
-                    className={`relative p-3.5 rounded-lg border transition-all cursor-pointer ${
-                      isForked ? "ml-6 border-l-2 border-l-indigo-500/80" : ""
+                    className={`relative p-3 rounded-lg border transition-all cursor-pointer ${
+                      isForked ? "ml-5 border-l-2 border-l-zinc-600" : ""
                     } ${
                       isSelected
-                        ? "bg-zinc-850 border-cyan-400/80 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
-                        : "bg-zinc-950/40 border-white/[0.06] hover:border-white/[0.16] hover:bg-zinc-900/40"
+                        ? "bg-zinc-900 border-white/[0.2] shadow-sm"
+                        : "bg-black/40 border-white/[0.05] hover:border-white/[0.12] hover:bg-zinc-900/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         {isForked ? (
-                          <GitBranch className="h-3.5 w-3.5 text-indigo-400" />
+                          <GitBranch className="h-3 w-3 text-zinc-400" />
                         ) : (
-                          <span className="flex h-2 w-2 rounded-full bg-cyan-400"></span>
+                          <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                         )}
                         <span className="font-mono text-xs font-semibold text-white">
                           Turn #{node.turn}
                         </span>
                         {isForked && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-950/60 border border-indigo-500/30 text-indigo-300">
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-white/[0.06]">
                             {node.branch}
                           </span>
                         )}
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <span className="text-[10px] font-mono text-slate-500">
+                        <span className="text-[10px] font-mono text-zinc-500">
                           {node.tokens} tok
                         </span>
                         {node.status === "tampered" ? (
@@ -464,22 +463,22 @@ export default function SessionAuditPage() {
                             TAMPERED
                           </span>
                         ) : node.status === "forked" ? (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-300">
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-white/[0.08] text-zinc-300">
                             FORKED
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/50 border border-emerald-500/30 text-emerald-400">
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-400">
                             VERIFIED
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-300 font-sans mt-1.5 font-medium">
+                    <div className="text-xs text-zinc-300 font-sans mt-1 font-medium">
                       {node.title}
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
+                    <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono mt-1.5">
                       <span className="truncate max-w-[200px]">
                         hash: {node.hash.slice(0, 16)}...
                       </span>
@@ -493,67 +492,67 @@ export default function SessionAuditPage() {
         </div>
 
         {/* Right Column: Node Inspector & Witness Proof (4 cols) */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider flex items-center justify-between">
+        <div className="lg:col-span-4 space-y-3">
+          <div className="text-xs font-mono font-medium text-zinc-400 uppercase tracking-wider flex items-center justify-between">
             <span className="flex items-center space-x-1.5">
-              <Terminal className="h-3.5 w-3.5 text-indigo-400" />
+              <Terminal className="h-3.5 w-3.5 text-zinc-400" />
               <span>Cryptographic Proof Witness</span>
             </span>
-            <span className="text-[10px] text-cyan-400 font-mono">{currentNode.id}</span>
+            <span className="text-[10px] text-zinc-400 font-mono">{currentNode.id}</span>
           </div>
 
-          <div className="glass-panel rounded-xl p-5 space-y-4">
+          <div className="glass-panel rounded-xl p-4.5 space-y-3.5">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-white font-mono">
                   Turn #{currentNode.turn} ({currentNode.branch})
                 </span>
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-[10px] font-mono text-zinc-400">
                   {currentNode.timestamp}
                 </span>
               </div>
-              <p className="text-xs text-slate-300 mt-1 font-sans">
+              <p className="text-xs text-zinc-300 mt-1 font-sans">
                 {currentNode.title}
               </p>
             </div>
 
             {/* Context Binding Parameters */}
             <div className="bg-black/50 border border-white/[0.06] rounded-lg p-3 space-y-2 font-mono text-[11px]">
-              <div className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold">
+              <div className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">
                 Contextual Binding Tuple
               </div>
               <div className="grid grid-cols-2 gap-1 text-[10px]">
-                <div className="text-slate-400">Tenant:</div>
-                <div className="text-slate-200 truncate">{currentSession.tenantId}</div>
-                <div className="text-slate-400">Bound User:</div>
-                <div className="text-slate-200 truncate">{currentSession.boundUserId}</div>
-                <div className="text-slate-400">Branch ID:</div>
-                <div className="text-indigo-300 font-semibold">{currentNode.branch}</div>
-                <div className="text-slate-400">Role:</div>
-                <div className="text-slate-200">{currentNode.role}</div>
+                <div className="text-zinc-400">Tenant:</div>
+                <div className="text-zinc-200 truncate">{currentSession.tenantId}</div>
+                <div className="text-zinc-400">Bound User:</div>
+                <div className="text-zinc-200 truncate">{currentSession.boundUserId}</div>
+                <div className="text-zinc-400">Branch ID:</div>
+                <div className="text-zinc-200 font-semibold">{currentNode.branch}</div>
+                <div className="text-zinc-400">Role:</div>
+                <div className="text-zinc-200">{currentNode.role}</div>
               </div>
             </div>
 
             {/* Node Hash & Parent Link */}
             <div className="space-y-2">
-              <div className="text-[11px] font-mono text-slate-400">
+              <div className="text-[11px] font-mono text-zinc-400">
                 State Digest (H_t):
               </div>
-              <div className="font-mono text-[10px] text-cyan-300 bg-black/60 p-2 rounded border border-white/[0.08] break-all">
+              <div className="font-mono text-[10px] text-zinc-300 bg-black/60 p-2 rounded border border-white/[0.08] break-all">
                 {currentNode.hash}
               </div>
 
-              <div className="text-[11px] font-mono text-slate-400 pt-1">
+              <div className="text-[11px] font-mono text-zinc-400 pt-0.5">
                 Parent Link (H_t-1):
               </div>
-              <div className="font-mono text-[10px] text-slate-400 bg-black/60 p-2 rounded border border-white/[0.08] break-all">
+              <div className="font-mono text-[10px] text-zinc-400 bg-black/60 p-2 rounded border border-white/[0.08] break-all">
                 {currentNode.parentHash}
               </div>
             </div>
 
             {/* Merkle Inclusion Witness */}
-            <div className="space-y-1.5 pt-1">
-              <div className="text-[11px] font-mono text-slate-400 flex items-center justify-between">
+            <div className="space-y-1.5 pt-0.5">
+              <div className="text-[11px] font-mono text-zinc-400 flex items-center justify-between">
                 <span>Merkle Witness Siblings:</span>
                 <span className="text-[10px] text-emerald-400 font-mono">HMAC-SHA256</span>
               </div>
@@ -563,8 +562,8 @@ export default function SessionAuditPage() {
                     key={i}
                     className="flex items-center justify-between p-1.5 rounded bg-zinc-950/60 border border-white/[0.05] text-[10px] font-mono"
                   >
-                    <span className="text-slate-500">Level {i} Witness</span>
-                    <span className="text-indigo-300 font-medium">{sibling}</span>
+                    <span className="text-zinc-500">Level {i} Witness</span>
+                    <span className="text-zinc-300 font-medium">{sibling}</span>
                   </div>
                 ))}
               </div>
@@ -572,7 +571,7 @@ export default function SessionAuditPage() {
 
             {/* Tamper / Rollback Simulation Action */}
             <div className="pt-3 border-t border-white/[0.08] space-y-2">
-              <div className="text-[10px] font-mono text-slate-500">
+              <div className="text-[10px] font-mono text-zinc-500">
                 Adversarial Proof Testing:
               </div>
               <button
@@ -580,7 +579,7 @@ export default function SessionAuditPage() {
                 className={`w-full py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
                   isTampered
                     ? "bg-rose-950/60 border border-rose-500/50 text-rose-300 hover:bg-rose-900/60"
-                    : "bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-slate-300 hover:text-white"
+                    : "bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] text-zinc-300 hover:text-white"
                 }`}
               >
                 {isTampered ? "Revert Simulated Mutation" : "Simulate Node Tampering (Bit Flip)"}

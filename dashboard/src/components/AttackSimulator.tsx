@@ -2,17 +2,14 @@
 
 import React, { useState } from "react";
 import {
-  Play,
   Flame,
   ShieldCheck,
-  RotateCcw,
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  FileCode,
-  ArrowRight,
-  Terminal as TerminalIcon,
   X,
+  Play,
+  Terminal as TerminalIcon,
 } from "lucide-react";
 
 export type AttackType = "REPLAY" | "SANITIZATION_TRAP" | "LINEAGE_DOWNGRADE";
@@ -34,10 +31,10 @@ interface AttackSimulatorProps {
 
 export default function AttackSimulator({ onSimulate }: AttackSimulatorProps) {
   const [activeSimulation, setActiveSimulation] = useState<SimulatedResult | null>(null);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [runningType, setRunningType] = useState<AttackType | null>(null);
 
   const triggerAttack = (type: AttackType) => {
-    setIsRunning(true);
+    setRunningType(type);
 
     let result: SimulatedResult;
 
@@ -46,7 +43,7 @@ export default function AttackSimulator({ onSimulate }: AttackSimulatorProps) {
         title: "Cross-User Reasoning Signature Replay",
         attackType: "REPLAY",
         statusCode: 403,
-        statusText: "403 Forbidden",
+        statusText: "HTTP 403 StateIntegrityViolation",
         invariant: "P1: Contextual Associated Data Binding",
         rawRequest: {
           target_url: "https://gateway.internal/v1/messages",
@@ -96,7 +93,7 @@ export default function AttackSimulator({ onSimulate }: AttackSimulatorProps) {
         title: "The Sanitization Trap (Credential Leak in CoT)",
         attackType: "SANITIZATION_TRAP",
         statusCode: 200,
-        statusText: "200 OK (Sanitized)",
+        statusText: "Inline Secret Redacted [200 OK]",
         invariant: "P3: Streaming Entropy & Automaton Redaction",
         rawRequest: {
           target_agent: "Autonomous Repository Maintainer",
@@ -122,7 +119,7 @@ export default function AttackSimulator({ onSimulate }: AttackSimulatorProps) {
         title: "Model Lineage Downgrade Attack",
         attackType: "LINEAGE_DOWNGRADE",
         statusCode: 403,
-        statusText: "403 Forbidden",
+        statusText: "HTTP 403 ModelMismatchViolation",
         invariant: "P2: Directed Acyclic Model Hierarchy Enforcement",
         rawRequest: {
           origin_model: "claude-opus-4.8 (High-Security / Strong Alignment)",
@@ -147,189 +144,176 @@ export default function AttackSimulator({ onSimulate }: AttackSimulatorProps) {
     }
 
     setTimeout(() => {
-      setIsRunning(false);
+      setRunningType(null);
       setActiveSimulation(result);
       onSimulate(result);
-    }, 400);
+    }, 350);
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-gradient-to-br from-zinc-950/80 via-obsidian-950 to-zinc-950/90 backdrop-blur-2xl p-6 shadow-2xl">
-      {/* Decorative ambient background blur */}
-      <div className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-rose-500/10 blur-3xl" />
-
-      {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
-        <div className="space-y-1">
+    <div className="glass-panel rounded-2xl p-5 space-y-4">
+      {/* Console Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3.5">
+        <div>
           <div className="flex items-center space-x-2">
-            <span className="flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#06b6d4]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 font-semibold">
-              Interactive Attack Simulation Sandbox
-            </span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h2 className="text-sm font-semibold tracking-tight text-white font-sans">
+              Interactive Zero-Trust Sandbox
+            </h2>
           </div>
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Test Hera Zero-Trust Invariants in Real Time
-          </h2>
-          <p className="text-xs text-slate-400">
-            Select an attack scenario below to watch the gateway intercept, validate Associated Data, and enforce cryptographic safety.
+          <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+            Trigger live adversarial payloads against the local gateway to observe real-time cryptographic quarantine.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.06]">
-          <TerminalIcon className="h-3.5 w-3.5 text-slate-400" />
-          <span>Active Gateway: port 8080</span>
+        <div className="flex items-center space-x-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-900/90 px-2.5 py-1 rounded-full border border-white/[0.06] self-start sm:self-auto">
+          <TerminalIcon className="h-3 w-3 text-zinc-500" />
+          <span>Local Gateway :8080</span>
         </div>
       </div>
 
-      {/* Simulation Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mt-5">
-        <button
-          onClick={() => triggerAttack("REPLAY")}
-          disabled={isRunning}
-          className="group relative flex flex-col p-4 text-left rounded-xl bg-gradient-to-b from-white/[0.04] to-transparent hover:from-white/[0.08] border border-white/[0.08] hover:border-rose-500/50 transition duration-200 shadow-sm"
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="flex items-center space-x-2 text-xs font-semibold font-mono text-rose-400 group-hover:text-rose-300">
-              <Flame className="h-3.5 w-3.5" />
-              <span>Simulate Replay Attack</span>
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950/60 border border-rose-500/30 text-rose-300">
-              HTTP 403
-            </span>
+      {/* 3 Compact Scenario Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        {/* Scenario A: Cross-User Replay */}
+        <div className="bg-[#0e0e11]/90 border border-white/[0.06] hover:border-rose-500/40 rounded-xl p-4 flex flex-col justify-between space-y-3 transition duration-200">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-white font-sans flex items-center space-x-1.5">
+                <Flame className="h-3.5 w-3.5 text-rose-400" />
+                <span>Cross-User Replay (Test A)</span>
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+              Replay Alice&apos;s signed thinking block into Bob&apos;s session.
+            </p>
+            <div className="text-[11px] font-mono text-rose-400/90 bg-rose-950/40 border border-rose-500/20 px-2 py-1 rounded-md">
+              Expected: HTTP 403 StateIntegrityViolation
+            </div>
           </div>
-          <p className="text-xs text-slate-300 font-medium mt-2">
-            Cross-User Token Transplantation
-          </p>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-            Replays User Alice's encrypted thinking envelope into Attacker Bob's session to test context isolation.
-          </p>
-          <div className="mt-3 flex items-center text-[11px] font-mono text-cyan-400 group-hover:translate-x-0.5 transition">
-            <span>Execute injection</span>
-            <ArrowRight className="h-3 w-3 ml-1" />
-          </div>
-        </button>
 
-        <button
-          onClick={() => triggerAttack("SANITIZATION_TRAP")}
-          disabled={isRunning}
-          className="group relative flex flex-col p-4 text-left rounded-xl bg-gradient-to-b from-white/[0.04] to-transparent hover:from-white/[0.08] border border-white/[0.08] hover:border-amber-500/50 transition duration-200 shadow-sm"
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="flex items-center space-x-2 text-xs font-semibold font-mono text-amber-400 group-hover:text-amber-300">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Simulate Sanitization Trap</span>
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/30 text-amber-300">
-              Redacted 200
-            </span>
-          </div>
-          <p className="text-xs text-slate-300 font-medium mt-2">
-            Credential Trapped in Reasoning
-          </p>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-            Simulates an agent cleaning AWS keys from code while secrets remain trapped in opaque CoT envelopes.
-          </p>
-          <div className="mt-3 flex items-center text-[11px] font-mono text-cyan-400 group-hover:translate-x-0.5 transition">
-            <span>Execute injection</span>
-            <ArrowRight className="h-3 w-3 ml-1" />
-          </div>
-        </button>
+          <button
+            onClick={() => triggerAttack("REPLAY")}
+            disabled={runningType !== null}
+            className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/30 hover:border-rose-500/50 text-xs font-mono text-rose-200 font-medium transition active:scale-[0.99] disabled:opacity-50"
+          >
+            <Play className={`h-3 w-3 ${runningType === "REPLAY" ? "animate-spin text-rose-400" : "fill-current"}`} />
+            <span>{runningType === "REPLAY" ? "Injecting..." : "Trigger Replay Attack"}</span>
+          </button>
+        </div>
 
-        <button
-          onClick={() => triggerAttack("LINEAGE_DOWNGRADE")}
-          disabled={isRunning}
-          className="group relative flex flex-col p-4 text-left rounded-xl bg-gradient-to-b from-white/[0.04] to-transparent hover:from-white/[0.08] border border-white/[0.08] hover:border-purple-500/50 transition duration-200 shadow-sm"
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="flex items-center space-x-2 text-xs font-semibold font-mono text-purple-400 group-hover:text-purple-300">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Simulate Lineage Downgrade</span>
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 border border-purple-500/30 text-purple-300">
-              HTTP 403
-            </span>
+        {/* Scenario B: Sanitization Trap */}
+        <div className="bg-[#0e0e11]/90 border border-white/[0.06] hover:border-amber-500/40 rounded-xl p-4 flex flex-col justify-between space-y-3 transition duration-200">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-white font-sans flex items-center space-x-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span>Sanitization Trap (Test C)</span>
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+              Agent refactors code and traps AWS secret in reasoning diff.
+            </p>
+            <div className="text-[11px] font-mono text-amber-300/90 bg-amber-950/40 border border-amber-500/20 px-2 py-1 rounded-md">
+              Expected: Inline Secret Redacted [200 OK]
+            </div>
           </div>
-          <p className="text-xs text-slate-300 font-medium mt-2">
-            Frontier Opus &rarr; Haiku Injection
-          </p>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-            Feeds high-tier reasoning tokens into weaker models to coerce safety refusal overrides.
-          </p>
-          <div className="mt-3 flex items-center text-[11px] font-mono text-cyan-400 group-hover:translate-x-0.5 transition">
-            <span>Execute injection</span>
-            <ArrowRight className="h-3 w-3 ml-1" />
+
+          <button
+            onClick={() => triggerAttack("SANITIZATION_TRAP")}
+            disabled={runningType !== null}
+            className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/30 hover:border-amber-500/50 text-xs font-mono text-amber-200 font-medium transition active:scale-[0.99] disabled:opacity-50"
+          >
+            <Play className={`h-3 w-3 ${runningType === "SANITIZATION_TRAP" ? "animate-spin text-amber-400" : "fill-current"}`} />
+            <span>{runningType === "SANITIZATION_TRAP" ? "Injecting..." : "Trigger Key Exfiltration"}</span>
+          </button>
+        </div>
+
+        {/* Scenario C: Lineage Downgrade */}
+        <div className="bg-[#0e0e11]/90 border border-white/[0.06] hover:border-purple-500/40 rounded-xl p-4 flex flex-col justify-between space-y-3 transition duration-200">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-white font-sans flex items-center space-x-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-purple-400" />
+                <span>Lineage Downgrade (Test B)</span>
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+              Feed Opus 4.8 reasoning into Haiku 4.5 decryption oracle.
+            </p>
+            <div className="text-[11px] font-mono text-purple-300/90 bg-purple-950/40 border border-purple-500/20 px-2 py-1 rounded-md">
+              Expected: HTTP 403 ModelMismatchViolation
+            </div>
           </div>
-        </button>
+
+          <button
+            onClick={() => triggerAttack("LINEAGE_DOWNGRADE")}
+            disabled={runningType !== null}
+            className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 hover:border-purple-500/50 text-xs font-mono text-purple-200 font-medium transition active:scale-[0.99] disabled:opacity-50"
+          >
+            <Play className={`h-3 w-3 ${runningType === "LINEAGE_DOWNGRADE" ? "animate-spin text-purple-400" : "fill-current"}`} />
+            <span>{runningType === "LINEAGE_DOWNGRADE" ? "Injecting..." : "Trigger Oracle Attack"}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Real-Time Result Terminal Banner (Appears when triggered) */}
+      {/* Real-Time Result Banner */}
       {activeSimulation && (
-        <div className="mt-5 rounded-xl border border-cyan-500/30 bg-[#06080e]/95 p-4.5 shadow-2xl animate-enter-down">
-          <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-            <div className="flex items-center space-x-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/20 text-cyan-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-bold text-white">
-                    {activeSimulation.title}
-                  </span>
-                  <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded ${
-                      activeSimulation.statusCode === 403
-                        ? "bg-rose-950 border border-rose-500/40 text-rose-300"
-                        : "bg-amber-950 border border-amber-500/40 text-amber-300"
-                    }`}
-                  >
-                    {activeSimulation.statusText}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                  Invariant Enforced: {activeSimulation.invariant}
-                </p>
-              </div>
+        <div className="rounded-xl border border-white/[0.1] bg-[#09090c] p-4 space-y-3 animate-enter-down">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <span className="text-xs font-bold text-white font-mono">
+                {activeSimulation.title}
+              </span>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                  activeSimulation.statusCode === 403
+                    ? "bg-rose-950/80 border border-rose-500/40 text-rose-300 font-medium"
+                    : "bg-amber-950/80 border border-amber-500/40 text-amber-300 font-medium"
+                }`}
+              >
+                {activeSimulation.statusText}
+              </span>
             </div>
 
             <button
               onClick={() => setActiveSimulation(null)}
-              className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-white/[0.05]"
+              className="text-zinc-500 hover:text-zinc-300 p-1 rounded hover:bg-white/[0.05]"
+              title="Dismiss"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 text-xs font-mono">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
             {/* Request Payload */}
-            <div className="rounded-lg bg-black/50 border border-white/[0.06] p-3">
-              <span className="text-[11px] text-rose-400 font-semibold block mb-1.5">
-                &times; Attacker / Client Request Payload:
+            <div className="rounded-lg bg-black/50 border border-white/[0.06] p-3 space-y-1">
+              <span className="text-[10px] text-rose-400 font-semibold uppercase tracking-wider block">
+                &times; Client Request Payload:
               </span>
-              <pre className="text-[11px] text-slate-300 overflow-x-auto max-h-36">
+              <pre className="text-[11px] text-zinc-300 overflow-x-auto max-h-32">
                 {JSON.stringify(activeSimulation.rawRequest, null, 2)}
               </pre>
             </div>
 
             {/* Gateway Intervention */}
-            <div className="rounded-lg bg-black/50 border border-white/[0.06] p-3">
-              <span className="text-[11px] text-emerald-400 font-semibold block mb-1.5">
-                &check; Hera Gateway Autonomous Intervention:
+            <div className="rounded-lg bg-black/50 border border-white/[0.06] p-3 space-y-1">
+              <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider block">
+                &check; Hera Gateway Autonomous Action:
               </span>
-              <pre className="text-[11px] text-emerald-300 overflow-x-auto max-h-36">
+              <pre className="text-[11px] text-emerald-300 overflow-x-auto max-h-32">
                 {JSON.stringify(activeSimulation.gatewayIntervention, null, 2)}
               </pre>
             </div>
           </div>
 
-          <div className="mt-3 rounded-lg bg-cyan-950/20 border border-cyan-500/20 p-2.5 text-[11px] text-cyan-200/90 font-sans flex items-center justify-between">
-            <span>&bull; {activeSimulation.summary}</span>
-            <span className="text-xs font-mono text-cyan-400 font-semibold shrink-0 ml-2">
-              Event dispatched to timeline &darr;
-            </span>
+          <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 bg-black/30 px-3 py-2 rounded-lg border border-white/[0.04]">
+            <span className="truncate mr-2">&bull; {activeSimulation.summary}</span>
+            <span className="text-emerald-400 shrink-0 font-medium">Event logged to stream &darr;</span>
           </div>
         </div>
       )}
     </div>
   );
 }
+

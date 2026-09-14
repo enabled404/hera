@@ -128,20 +128,20 @@ export default function ThreatFeedPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
-          <div className="flex items-center space-x-2.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-semibold">
-              Live Threat Intelligence &bull; Security Operations Center
+          <div className="flex items-center space-x-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+              Security Operations Center
             </span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-white font-sans mt-1">
             Enterprise Reasoning State Telemetry
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-zinc-400 mt-0.5 max-w-2xl font-sans">
             Continuous real-time stream of cryptographic context validations, in-flight secret scrubbing, and model lineage enforcement.
           </p>
         </div>
@@ -153,9 +153,9 @@ export default function ThreatFeedPage() {
               setAttacksBlocked(184);
               setSecretsRedacted(1942);
             }}
-            className="flex items-center space-x-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] px-3 py-1.5 text-xs font-mono text-slate-300 hover:text-white transition"
+            className="flex items-center space-x-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] px-3 py-1.5 text-xs font-mono text-zinc-300 hover:text-white transition"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3 w-3 text-zinc-400" />
             <span>Reset Feed</span>
           </button>
         </div>
@@ -176,11 +176,16 @@ export default function ThreatFeedPage() {
       {/* 3. Real-Time Threat Stream & Payload Inspector */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white tracking-tight flex items-center space-x-2">
-            <Activity className="h-4 w-4 text-cyan-400" />
-            <span>Real-Time Security Event Stream</span>
-          </h3>
-          <span className="text-[11px] font-mono text-slate-400">
+          <div className="flex items-center space-x-2">
+            <h3 className="text-sm font-semibold text-white tracking-tight font-sans">
+              Live Threat Stream
+            </h3>
+            <span className="inline-flex items-center space-x-1 text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Active Ingestion</span>
+            </span>
+          </div>
+          <span className="text-[11px] font-mono text-zinc-500">
             {events.length} Events Logged
           </span>
         </div>

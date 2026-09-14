@@ -4,20 +4,14 @@ import React, { useState } from "react";
 import {
   ShieldAlert,
   ShieldCheck,
-  Key,
   Search,
-  SlidersHorizontal,
   ChevronRight,
   X,
   Copy,
   Check,
-  Terminal,
   Clock,
-  Layers,
-  FileCode2,
   Lock,
   ArrowRight,
-  ExternalLink,
 } from "lucide-react";
 
 export interface SecurityEvent {
@@ -43,11 +37,19 @@ export default function EventStream({ events }: EventStreamProps) {
   const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
+  // Compute counts for filter pills
+  const counts = {
+    all: events.length,
+    replays: events.filter((e) => e.event_type === "CROSS_USER_REPLAY").length,
+    downgrades: events.filter((e) => e.event_type === "MODEL_MISMATCH").length,
+    redactions: events.filter((e) => e.event_type === "SECRET_IN_STATE").length,
+  };
+
   const filterOptions = [
-    { id: "ALL", label: "All Events" },
-    { id: "CROSS_USER_REPLAY", label: "Replay Attacks (403)" },
-    { id: "MODEL_MISMATCH", label: "Model Downgrades (403)" },
-    { id: "SECRET_IN_STATE", label: "Secret Scrubbing (200)" },
+    { id: "ALL", label: `All (${counts.all})` },
+    { id: "CROSS_USER_REPLAY", label: `Replays (${counts.replays})` },
+    { id: "MODEL_MISMATCH", label: `Downgrades (${counts.downgrades})` },
+    { id: "SECRET_IN_STATE", label: `Redactions (${counts.redactions})` },
   ];
 
   const filteredEvents = events.filter((evt) => {
@@ -72,27 +74,33 @@ export default function EventStream({ events }: EventStreamProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getSeverityBadge = (severity: string) => {
-    switch (severity) {
-      case "CRITICAL":
+  const getStatusPill = (eventType: string) => {
+    switch (eventType) {
+      case "CROSS_USER_REPLAY":
         return (
-          <span className="inline-flex items-center space-x-1.5 rounded-full bg-rose-950/70 border border-rose-500/40 px-2.5 py-0.5 text-[10px] font-mono font-bold text-rose-300">
+          <span className="inline-flex items-center space-x-1 rounded-md bg-rose-950/60 border border-rose-500/30 px-2 py-0.5 text-[10px] font-mono font-semibold text-rose-300">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />
-            <span>CRITICAL</span>
+            <span>403 FORBIDDEN</span>
           </span>
         );
-      case "HIGH":
+      case "MODEL_MISMATCH":
         return (
-          <span className="inline-flex items-center space-x-1.5 rounded-full bg-amber-950/70 border border-amber-500/40 px-2.5 py-0.5 text-[10px] font-mono font-bold text-amber-300">
+          <span className="inline-flex items-center space-x-1 rounded-md bg-rose-950/60 border border-rose-500/30 px-2 py-0.5 text-[10px] font-mono font-semibold text-rose-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+            <span>403 FORBIDDEN</span>
+          </span>
+        );
+      case "SECRET_IN_STATE":
+        return (
+          <span className="inline-flex items-center space-x-1 rounded-md bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-300">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-            <span>HIGH</span>
+            <span>200 SANITIZED</span>
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center space-x-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/40 px-2.5 py-0.5 text-[10px] font-mono text-cyan-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-            <span>MEDIUM</span>
+          <span className="inline-flex items-center space-x-1 rounded-md bg-zinc-800 border border-white/[0.08] px-2 py-0.5 text-[10px] font-mono text-zinc-300">
+            <span>200 OK</span>
           </span>
         );
     }
@@ -101,30 +109,41 @@ export default function EventStream({ events }: EventStreamProps) {
   const getEventTitle = (type: string) => {
     switch (type) {
       case "CROSS_USER_REPLAY":
-        return "Cross-User Reasoning Signature Replay Attempt";
+        return "Cross-User Signature Replay Attack";
       case "MODEL_MISMATCH":
-        return "Model Lineage Downgrade & Refusal Bypass";
+        return "Model Lineage Downgrade Attempt";
       case "SECRET_IN_STATE":
-        return "Credential Trapped in Chain-of-Thought (Sanitization Trap)";
+        return "Secret Trapped in Chain-of-Thought (Scrubbed)";
       default:
         return type.replace(/_/g, " ");
     }
   };
 
+  const getInvariantText = (evt: SecurityEvent) => {
+    if (evt.event_type === "CROSS_USER_REPLAY") {
+      return "Associated Data mismatch: user_id 'user-alice' != 'user-bob'";
+    } else if (evt.event_type === "MODEL_MISMATCH") {
+      return "Lineage violation: down-tier transplant (Opus -> Haiku)";
+    } else if (evt.event_type === "SECRET_IN_STATE") {
+      return "Shannon entropy H(X) >= 4.2: inline credential redacted";
+    }
+    return evt.metadata.reason || "Integrity verification enforced";
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Control bar: Search & Filters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-2xl glass-panel">
+    <div className="space-y-3">
+      {/* Header & Controls */}
+      <div className="glass-panel rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Filter Pills */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {filterOptions.map((opt) => (
             <button
               key={opt.id}
               onClick={() => setActiveFilter(opt.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                 activeFilter === opt.id
-                  ? "bg-white/[0.12] text-white shadow-sm border border-white/[0.12]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                  ? "bg-zinc-800 text-white border border-white/[0.1] shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
               }`}
             >
               {opt.label}
@@ -132,29 +151,40 @@ export default function EventStream({ events }: EventStreamProps) {
           ))}
         </div>
 
-        {/* Search input */}
-        <div className="relative min-w-[240px]">
-          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Filter tenant, session, user, model..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl bg-black/40 border border-white/[0.08] pl-9 pr-4 py-1.5 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 transition"
-          />
+        {/* Search & Reset */}
+        <div className="flex items-center space-x-2">
+          <div className="relative min-w-[200px] sm:min-w-[240px]">
+            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Search session, tenant, model..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg bg-black/40 border border-white/[0.08] pl-8 pr-3 py-1 text-xs font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 transition"
+            />
+          </div>
+
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-xs font-mono text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-800/60 border border-white/[0.06]"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Timeline Event Rows */}
-      <div className="rounded-2xl glass-panel divide-y divide-white/[0.06] overflow-hidden">
+      {/* Log Stream Items */}
+      <div className="space-y-1.5">
         {filteredEvents.length === 0 ? (
-          <div className="p-12 text-center">
-            <ShieldCheck className="mx-auto h-10 w-10 text-emerald-400/60 mb-2" />
-            <p className="text-sm font-medium text-slate-300">
-              No matching threat events detected
+          <div className="glass-panel rounded-xl p-8 text-center">
+            <ShieldCheck className="mx-auto h-8 w-8 text-emerald-400/60 mb-2" />
+            <p className="text-sm font-medium text-zinc-300">
+              No matching security events
             </p>
-            <p className="text-xs text-slate-500 mt-1">
-              Zero active integrity violations for current filter.
+            <p className="text-xs text-zinc-500 mt-1 font-mono">
+              Zero active integrity violations matching the current filter.
             </p>
           </div>
         ) : (
@@ -162,86 +192,63 @@ export default function EventStream({ events }: EventStreamProps) {
             <div
               key={event.id}
               onClick={() => setSelectedEvent(event)}
-              className="group flex flex-col lg:flex-row lg:items-center justify-between p-4 hover:bg-white/[0.02] cursor-pointer transition duration-150 gap-3"
+              className="bg-zinc-950/40 border border-white/[0.04] hover:border-white/[0.1] rounded-lg p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between transition-all group gap-2 cursor-pointer"
             >
-              <div className="flex items-start space-x-3.5">
-                <div className="mt-0.5">{getSeverityBadge(event.severity)}</div>
+              {/* Left Zone: Status pill, attack label, timestamp, session ID */}
+              <div className="flex items-center space-x-2.5 min-w-0">
+                {getStatusPill(event.event_type)}
 
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2.5">
-                    <span className="font-semibold text-xs text-white group-hover:text-cyan-300 transition">
-                      {getEventTitle(event.event_type)}
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-400 flex items-center space-x-1">
-                      <Clock className="h-3 w-3 inline text-slate-500" />
-                      <span>{new Date(event.created_at).toLocaleTimeString()}</span>
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-400 leading-relaxed line-clamp-1">
-                    {event.metadata.reason ||
-                      event.metadata.summary ||
-                      `Intervention triggered by ${event.event_type}`}
-                  </p>
-
-                  {/* Context Chips */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="rounded bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono text-slate-300">
-                      tenant: <strong className="text-white">{event.tenant_id}</strong>
-                    </span>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 min-w-0">
+                  <span className="text-xs font-medium text-white group-hover:text-zinc-200 transition font-sans truncate">
+                    {getEventTitle(event.event_type)}
+                  </span>
+                  <div className="flex items-center space-x-1.5 text-[11px] font-mono text-zinc-500">
+                    <span className="hidden sm:inline">&middot;</span>
+                    <span>{new Date(event.created_at).toLocaleTimeString()}</span>
                     {event.session_id && (
-                      <span className="rounded bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono text-slate-300">
-                        sess: <strong className="text-cyan-300">{event.session_id}</strong>
-                      </span>
-                    )}
-                    {event.model && (
-                      <span className="rounded bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono text-slate-300">
-                        model: <strong className="text-indigo-300">{event.model}</strong>
-                      </span>
-                    )}
-                    {event.payload_fingerprint && (
-                      <span className="rounded bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono text-slate-400">
-                        hash: {event.payload_fingerprint.slice(0, 8)}...
-                      </span>
+                      <>
+                        <span>&middot;</span>
+                        <span className="text-zinc-400 truncate max-w-[120px]">
+                          {event.session_id}
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Action Button */}
-              <div className="flex items-center space-x-2 shrink-0 self-end lg:self-center">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedEvent(event);
-                  }}
-                  className="flex items-center space-x-1.5 rounded-xl bg-white/[0.04] hover:bg-cyan-950/40 border border-white/[0.08] hover:border-cyan-500/40 px-3 py-1.5 text-xs font-mono text-slate-300 hover:text-cyan-300 transition"
-                >
-                  <FileCode2 className="h-3.5 w-3.5" />
-                  <span>Inspect Diff &amp; Proof</span>
-                  <ChevronRight className="h-3 w-3" />
-                </button>
+              {/* Middle Zone: Invariant Violated */}
+              <div className="hidden lg:block text-xs font-mono text-zinc-400 truncate max-w-sm px-2">
+                {getInvariantText(event)}
+              </div>
+
+              {/* Right Zone: Inspect Action */}
+              <div className="flex items-center space-x-2 shrink-0 self-end md:self-auto">
+                <span className="inline-flex items-center space-x-1 text-xs font-mono text-zinc-400 group-hover:text-white transition">
+                  <span>Inspect Diff</span>
+                  <ArrowRight className="h-3 w-3 text-zinc-500 group-hover:text-white transition group-hover:translate-x-0.5" />
+                </span>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* INSPECTION DRAWER / MODAL */}
+      {/* INSPECTION MODAL / DRAWER */}
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-enter-down">
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl glass-panel border border-white/[0.12] p-6 shadow-2xl space-y-6">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl glass-panel border border-white/[0.12] p-5 sm:p-6 shadow-2xl space-y-5">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3.5">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2.5">
-                  {getSeverityBadge(selectedEvent.severity)}
-                  <h3 className="text-base font-bold text-white tracking-tight">
+                  {getStatusPill(selectedEvent.event_type)}
+                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight font-sans">
                     {getEventTitle(selectedEvent.event_type)}
                   </h3>
                 </div>
-                <p className="text-xs font-mono text-slate-400">
-                  Incident ID: {selectedEvent.id} &bull; Detected at:{" "}
+                <p className="text-xs font-mono text-zinc-400">
+                  Event ID: {selectedEvent.id} &bull; Timestamp:{" "}
                   {new Date(selectedEvent.created_at).toISOString()}
                 </p>
               </div>
@@ -251,19 +258,19 @@ export default function EventStream({ events }: EventStreamProps) {
                   onClick={() =>
                     copyToClipboard(JSON.stringify(selectedEvent, null, 2))
                   }
-                  className="flex items-center space-x-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-slate-300 transition"
+                  className="flex items-center space-x-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-zinc-300 transition"
                 >
                   {copied ? (
                     <Check className="h-3.5 w-3.5 text-emerald-400" />
                   ) : (
-                    <Copy className="h-3.5 w-3.5 text-slate-400" />
+                    <Copy className="h-3.5 w-3.5 text-zinc-400" />
                   )}
-                  <span>{copied ? "Copied JSON" : "Copy Payload"}</span>
+                  <span>{copied ? "Copied" : "Copy JSON"}</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedEvent(null)}
-                  className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.08] transition"
+                  className="rounded-lg p-1 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -273,106 +280,91 @@ export default function EventStream({ events }: EventStreamProps) {
             {/* Context Summary Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
               <div className="rounded-xl bg-black/40 border border-white/[0.06] p-2.5">
-                <span className="text-[10px] text-slate-500 uppercase block">
-                  Tenant
-                </span>
-                <span className="text-white font-semibold">
-                  {selectedEvent.tenant_id}
-                </span>
+                <span className="text-[10px] text-zinc-500 uppercase block">Tenant</span>
+                <span className="text-white font-semibold">{selectedEvent.tenant_id}</span>
               </div>
               <div className="rounded-xl bg-black/40 border border-white/[0.06] p-2.5">
-                <span className="text-[10px] text-slate-500 uppercase block">
-                  Session ID
-                </span>
-                <span className="text-cyan-300 font-semibold truncate block">
+                <span className="text-[10px] text-zinc-500 uppercase block">Session ID</span>
+                <span className="text-zinc-200 font-semibold truncate block">
                   {selectedEvent.session_id || "N/A"}
                 </span>
               </div>
               <div className="rounded-xl bg-black/40 border border-white/[0.06] p-2.5">
-                <span className="text-[10px] text-slate-500 uppercase block">
-                  Turn Counter
-                </span>
+                <span className="text-[10px] text-zinc-500 uppercase block">Turn Counter</span>
                 <span className="text-white font-semibold">
                   Turn #{selectedEvent.metadata.turn || 2}
                 </span>
               </div>
               <div className="rounded-xl bg-black/40 border border-white/[0.06] p-2.5">
-                <span className="text-[10px] text-slate-500 uppercase block">
-                  Model
-                </span>
-                <span className="text-indigo-300 font-semibold truncate block">
-                  {selectedEvent.model ||
-                    selectedEvent.metadata.target_model ||
-                    "claude-3-5-sonnet"}
+                <span className="text-[10px] text-zinc-500 uppercase block">Model Target</span>
+                <span className="text-zinc-200 font-semibold truncate block">
+                  {selectedEvent.model || selectedEvent.metadata.target_model || "claude-3-5-sonnet"}
                 </span>
               </div>
             </div>
 
-            {/* SIDE-BY-SIDE VISUAL DIFF */}
-            <div>
-              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">
-                1. Payload Ingress vs. Hera Gateway Autonomous Intervention
+            {/* Side-by-Side Payload Comparison (Before vs After) */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-400">
+                1. Inbound Malicious Payload (Before) vs. Gateway Defense Action (After)
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
-                {/* Attacker Payload */}
-                <div className="rounded-xl bg-[#090b14] border border-rose-500/30 p-3.5 space-y-2">
+                {/* Attacker Payload (Before) */}
+                <div className="rounded-xl bg-[#09090c] border border-rose-500/30 p-3.5 space-y-2">
                   <div className="flex items-center justify-between border-b border-rose-500/20 pb-2">
                     <span className="text-rose-400 font-bold flex items-center space-x-1.5">
                       <ShieldAlert className="h-3.5 w-3.5" />
-                      <span>Attacker Request Payload</span>
+                      <span>Inbound Malicious Payload</span>
                     </span>
                     <span className="text-[10px] text-rose-400/80 bg-rose-950/60 px-2 py-0.5 rounded">
                       Untrusted Ingress
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-[11px] text-slate-300">
+                  <div className="space-y-1 text-[11px] text-zinc-300">
                     <div>
-                      <span className="text-slate-500">Origin Tenant: </span>
+                      <span className="text-zinc-500">Origin Tenant: </span>
                       <span className="text-rose-300 font-semibold">
                         {selectedEvent.metadata.bound_tenant || "tenant-alpha"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Origin User: </span>
+                      <span className="text-zinc-500">Origin User: </span>
                       <span className="text-rose-300 font-semibold">
                         {selectedEvent.metadata.bound_user || "user-alice"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Attempted Target: </span>
+                      <span className="text-zinc-500">Attempted Target: </span>
                       <span className="text-rose-400 font-semibold">
-                        {selectedEvent.metadata.attempted_user ||
-                          selectedEvent.metadata.target_model ||
-                          "user-bob"}
+                        {selectedEvent.metadata.attempted_user || selectedEvent.metadata.target_model || "user-bob"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Thinking Blob: </span>
-                      <span className="text-slate-400 break-all">
-                        {selectedEvent.payload_fingerprint ||
-                          "sgh_0191e4a2-8b3c-7890-a1b2-c3d4e5f6a7b8"}
+                      <span className="text-zinc-500">Thinking Signature: </span>
+                      <span className="text-zinc-400 break-all">
+                        {selectedEvent.payload_fingerprint || "sgh_0191e4a2-8b3c-7890-a1b2-c3d4e5f6a7b8"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Gateway Intervention */}
-                <div className="rounded-xl bg-[#090b14] border border-emerald-500/30 p-3.5 space-y-2">
+                {/* Gateway Defense Action (After) */}
+                <div className="rounded-xl bg-[#09090c] border border-emerald-500/30 p-3.5 space-y-2">
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-400 font-bold flex items-center space-x-1.5">
                       <ShieldCheck className="h-3.5 w-3.5" />
-                      <span>Hera Gateway Intervention</span>
+                      <span>Gateway Defense Action</span>
                     </span>
                     <span className="text-[10px] text-emerald-400/80 bg-emerald-950/60 px-2 py-0.5 rounded">
                       Enforced Invariant
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-[11px] text-slate-300">
+                  <div className="space-y-1 text-[11px] text-zinc-300">
                     <div>
-                      <span className="text-slate-500">HTTP Response: </span>
+                      <span className="text-zinc-500">HTTP Verdict: </span>
                       <span
                         className={`font-semibold ${
                           selectedEvent.event_type === "SECRET_IN_STATE"
@@ -386,23 +378,17 @@ export default function EventStream({ events }: EventStreamProps) {
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Violation Type: </span>
-                      <span className="text-emerald-300 font-semibold">
-                        {selectedEvent.event_type}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Action: </span>
+                      <span className="text-zinc-500">Action: </span>
                       <span className="text-emerald-400 font-semibold">
                         {selectedEvent.event_type === "SECRET_IN_STATE"
-                          ? "Scrubbed in-flight with Shannon entropy scanner"
-                          : "Request dropped before upstream LLM invocation"}
+                          ? "Scrubbed in-flight before APM export"
+                          : "Dropped at ingress; zero bytes forwarded upstream"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Proof Verification: </span>
-                      <span className="text-cyan-300 font-semibold">
-                        &check; HMAC &amp; Merkle AD Mismatch Confirmed
+                      <span className="text-zinc-500">Invariant: </span>
+                      <span className="text-zinc-200 font-semibold">
+                        {getInvariantText(selectedEvent)}
                       </span>
                     </div>
                   </div>
@@ -410,31 +396,29 @@ export default function EventStream({ events }: EventStreamProps) {
               </div>
             </div>
 
-            {/* Cryptographic Invariant Breakdown */}
-            <div className="rounded-xl bg-black/40 border border-white/[0.06] p-4 space-y-3">
-              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
-                <Lock className="h-3.5 w-3.5 text-cyan-400" />
-                <span>2. Mathematical &amp; Cryptographic Proof Parameters</span>
+            {/* Cryptographic Proof Attributes */}
+            <div className="rounded-xl bg-black/40 border border-white/[0.06] p-4 space-y-2.5">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-400 flex items-center space-x-1.5">
+                <Lock className="h-3.5 w-3.5 text-emerald-400" />
+                <span>2. Cryptographic Proof Attributes</span>
               </h4>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] font-mono">
-                <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <span className="text-slate-500 block mb-1">Associated Data (AD)</span>
-                  <span className="text-cyan-300 break-all">
-                    tenant_id || user_id || session_id || turn || model
-                  </span>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 text-[11px] font-mono">
+                <div className="p-2 rounded-lg bg-zinc-900/60 border border-white/[0.04]">
+                  <span className="text-zinc-500 block mb-0.5">Tenant Key ID</span>
+                  <span className="text-zinc-200">k_prod_89012a</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <span className="text-slate-500 block mb-1">HMAC Ratchet Status</span>
-                  <span className="text-rose-300">
-                    &tau;_{`{n+1}`} verification rejected (Out-of-order)
-                  </span>
+                <div className="p-2 rounded-lg bg-zinc-900/60 border border-white/[0.04]">
+                  <span className="text-zinc-500 block mb-0.5">Expected AD Hash</span>
+                  <span className="text-emerald-400 truncate block">0x9f83a21b4c...</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <span className="text-slate-500 block mb-1">Merkle Tree Origin</span>
-                  <span className="text-emerald-300">
-                    Child branch mismatch with parent root
-                  </span>
+                <div className="p-2 rounded-lg bg-zinc-900/60 border border-white/[0.04]">
+                  <span className="text-zinc-500 block mb-0.5">Received AD Hash</span>
+                  <span className="text-rose-400 truncate block">0x1122a4f910...</span>
+                </div>
+                <div className="p-2 rounded-lg bg-zinc-900/60 border border-white/[0.04]">
+                  <span className="text-zinc-500 block mb-0.5">Sequence Ordinality</span>
+                  <span className="text-zinc-300">Turn #2 (Monotonic)</span>
                 </div>
               </div>
             </div>
@@ -443,7 +427,7 @@ export default function EventStream({ events }: EventStreamProps) {
             <div className="flex justify-end pt-2 border-t border-white/[0.08]">
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="rounded-xl bg-white/[0.08] hover:bg-white/[0.15] px-4 py-2 text-xs font-mono text-white transition"
+                className="rounded-lg bg-zinc-800 hover:bg-zinc-700 px-4 py-1.5 text-xs font-mono text-white transition"
               >
                 Close Inspector
               </button>
@@ -454,3 +438,4 @@ export default function EventStream({ events }: EventStreamProps) {
     </div>
   );
 }
+
