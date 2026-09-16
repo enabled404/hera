@@ -1,0 +1,32 @@
+{
+  "name": "stateguard",
+  "version": "1.1.0",
+  "description": "Instant CLI scanner and gateway runner for StateGuard: Enterprise Agent State Security Gateway",
+  "homepage": "https://saadkhalidhere.vercel.app",
+  "bugs": "https://github.com/enabled404/hera/issues",
+  "type": "module",
+  "bin": {
+    "stateguard": "./bin/stateguard.js"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "keywords": [
+    "stateguard",
+    "security",
+    "cli",
+    "llm",
+    "ai-agents",
+    "sarif",
+    "audit",
+    "static-analysis",
+    "chain-of-thought"
+  ],
+  "author": "Saad Khalid <saadkhalid2000@outlook.com>",
+  "license": "Apache-2.0",
+  "repository": "github:enabled404/hera",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
