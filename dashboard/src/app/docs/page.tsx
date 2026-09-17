@@ -82,7 +82,7 @@ print("Protected State Handle:", response.stateguard_handle)`;
       </div>
 
       {/* Core Objectives Box */}
-      <div className="glass-panel rounded-xl p-5 space-y-3">
+      <div id="what-hera-solves" className="glass-panel rounded-xl p-5 space-y-3">
         <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-200 flex items-center space-x-2">
           <Zap className="h-4 w-4 text-emerald-400" />
           <span>What Hera Solves</span>
@@ -108,7 +108,7 @@ print("Protected State Handle:", response.stateguard_handle)`;
       </div>
 
       {/* Quickstart Section 1: Docker Compose */}
-      <div className="space-y-3">
+      <div id="docker-quickstart" className="space-y-3">
         <h2 className="text-lg font-bold text-white font-sans">
           1. Quickstart with Docker Compose
         </h2>
@@ -120,7 +120,7 @@ print("Protected State Handle:", response.stateguard_handle)`;
       </div>
 
       {/* Quickstart Section 2: Zero-Install NPX Scanner */}
-      <div className="space-y-3">
+      <div id="cli-scanner-quickstart" className="space-y-3">
         <h2 className="text-lg font-bold text-white font-sans">
           2. Zero-Install CLI Trajectory Scanner
         </h2>
@@ -132,7 +132,7 @@ print("Protected State Handle:", response.stateguard_handle)`;
       </div>
 
       {/* Quickstart Section 3: SDK Integration */}
-      <div className="space-y-3">
+      <div id="sdk-route-quickstart" className="space-y-3">
         <h2 className="text-lg font-bold text-white font-sans">
           3. Route Agent Requests via Hera
         </h2>

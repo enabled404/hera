@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Shield, ArrowRight, Github, ExternalLink, ArrowLeft } from "lucide-react";
 import DocsSidebar from "@/components/docs/DocsSidebar";
+import DocsTOC from "@/components/docs/DocsTOC";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -54,10 +55,11 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         </div>
       </header>
 
-      {/* Main Body with Sidebar */}
+      {/* Main Body with 3-Column Layout: Left Nav / Center Content / Right TOC */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-8">
         <DocsSidebar />
-        <main className="flex-1 min-w-0 max-w-4xl py-2">{children}</main>
+        <main className="flex-1 min-w-0 max-w-3xl py-2">{children}</main>
+        <DocsTOC />
       </div>
 
       {/* Minimal Docs Footer */}

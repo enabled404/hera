@@ -34,7 +34,7 @@ curl https://api.anthropic.com/v1/messages \\
     <div className="space-y-8 animate-enter-down">
       <DocsBreadcrumb category="Core Architecture" currentPage="Threat Model (arXiv:2608.09867)" />
 
-      <div className="space-y-3">
+      <div id="threat-taxonomy" className="space-y-3">
         <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-md bg-rose-950/40 border border-rose-500/30 text-[11px] font-mono text-rose-300">
           <ShieldAlert className="h-3.5 w-3.5" />
           <span>Security Advisory SG-ADV-2026-001 (CVSS 8.6 High)</span>
@@ -50,7 +50,7 @@ curl https://api.anthropic.com/v1/messages \\
       </div>
 
       {/* Vector 1: Decryption Oracles */}
-      <div className="glass-panel rounded-xl p-6 space-y-4">
+      <div id="vector-oracle" className="glass-panel rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <h2 className="text-base font-bold text-white font-sans">
             1. Asymmetric Decryption Oracles (Model Lineage Downgrades)
@@ -74,7 +74,7 @@ curl https://api.anthropic.com/v1/messages \\
       </div>
 
       {/* Vector 2: The Sanitization Trap */}
-      <div className="glass-panel rounded-xl p-6 space-y-3">
+      <div id="vector-trap" className="glass-panel rounded-xl p-6 space-y-3">
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <h2 className="text-base font-bold text-white font-sans">
             2. The Sanitization Trap (Credential Harvesting)
@@ -96,7 +96,7 @@ curl https://api.anthropic.com/v1/messages \\
       </div>
 
       {/* Vector 3: Cross-User Replay */}
-      <div className="glass-panel rounded-xl p-6 space-y-3">
+      <div id="vector-replay" className="glass-panel rounded-xl p-6 space-y-3">
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <h2 className="text-base font-bold text-white font-sans">
             3. Cross-User Context Replay
@@ -110,6 +110,31 @@ curl https://api.anthropic.com/v1/messages \\
           and append it to their own request. The provider validates the token&apos;s signature and treats User B
           with User A&apos;s authenticated context. Hera drops any token replayed across disparate user IDs.
         </p>
+      </div>
+
+      {/* CVSS Score Assessment */}
+      <div id="cvss-score" className="glass-panel rounded-xl p-6 space-y-3">
+        <h2 className="text-base font-bold text-white font-sans">
+          CVSS 8.6 Impact Assessment
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="p-2.5 rounded bg-black/40 border border-white/[0.06]">
+            <div className="text-zinc-500 text-[10px]">Attack Vector</div>
+            <div className="text-white font-semibold mt-0.5">Network (AV:N)</div>
+          </div>
+          <div className="p-2.5 rounded bg-black/40 border border-white/[0.06]">
+            <div className="text-zinc-500 text-[10px]">Complexity</div>
+            <div className="text-white font-semibold mt-0.5">Low (AC:L)</div>
+          </div>
+          <div className="p-2.5 rounded bg-black/40 border border-white/[0.06]">
+            <div className="text-zinc-500 text-[10px]">Privileges</div>
+            <div className="text-white font-semibold mt-0.5">None (PR:N)</div>
+          </div>
+          <div className="p-2.5 rounded bg-black/40 border border-white/[0.06]">
+            <div className="text-zinc-500 text-[10px]">Confidentiality</div>
+            <div className="text-rose-400 font-semibold mt-0.5">High (C:H)</div>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}

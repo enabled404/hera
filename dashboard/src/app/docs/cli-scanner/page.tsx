@@ -50,8 +50,8 @@ SARIF report generated: stateguard-results.sarif (3 findings)`;
       </div>
 
       {/* Basic Scan */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-bold text-white font-sans">1. Running Trajectory Scans</h2>
+      <div id="scanner-overview" className="space-y-3">
+        <h2 className="text-lg font-bold text-white font-sans">Static Scanner Capabilities &amp; Trajectory Auditing</h2>
         <p className="text-xs text-zinc-400 font-sans leading-relaxed">
           Audit any directory containing OpenAI or Anthropic message logs:
         </p>
@@ -67,13 +67,42 @@ SARIF report generated: stateguard-results.sarif (3 findings)`;
       </div>
 
       {/* SARIF & Migration */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-bold text-white font-sans">2. CI/CD Integration &amp; Batch Migration</h2>
+      <div id="ci-cd-sarif" className="space-y-3">
+        <h2 className="text-lg font-bold text-white font-sans">GitHub Actions &amp; SARIF Gate</h2>
         <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-          Export SARIF reports directly into GitHub Actions Security tabs, or rewrite legacy files with
-          cryptographically-signed state handles:
+          Export SARIF reports directly into GitHub Actions Security tabs to block PRs leaking credentials:
         </p>
         <CodeSnippet code={sarifCiCmd} filename="Terminal (CI/CD Pipeline)" />
+      </div>
+
+      {/* Migrate command */}
+      <div id="migrate-command" className="space-y-3">
+        <h2 className="text-lg font-bold text-white font-sans">stateguard migrate Utility</h2>
+        <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+          Batch-rewrite historical unencrypted trajectories by calculating HMAC hashes and sealing secrets:
+        </p>
+        <div className="p-3 rounded-lg bg-black/60 border border-white/[0.06] font-mono text-xs text-zinc-300">
+          stateguard migrate ./legacy_logs/ --out ./encrypted_vault/ --key $STATEGUARD_TENANT_KEY
+        </div>
+      </div>
+
+      {/* Exit Codes */}
+      <div id="exit-codes" className="space-y-3">
+        <h2 className="text-lg font-bold text-white font-sans">CLI Flags &amp; Exit Codes</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+          <div className="p-3 rounded-lg bg-black/40 border border-white/[0.06]">
+            <span className="text-emerald-400 font-bold">Exit 0</span>
+            <div className="text-zinc-400 mt-1 text-[11px]">All trajectories verified clean.</div>
+          </div>
+          <div className="p-3 rounded-lg bg-black/40 border border-white/[0.06]">
+            <span className="text-amber-400 font-bold">Exit 1</span>
+            <div className="text-zinc-400 mt-1 text-[11px]">High-entropy secrets trapped in state.</div>
+          </div>
+          <div className="p-3 rounded-lg bg-black/40 border border-white/[0.06]">
+            <span className="text-rose-400 font-bold">Exit 2</span>
+            <div className="text-zinc-400 mt-1 text-[11px]">Monotonic ordinality or signature failure.</div>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}

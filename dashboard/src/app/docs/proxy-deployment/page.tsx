@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Server, ArrowRight, ArrowLeft, Terminal, Shield, CheckCircle } from "lucide-react";
+import { Server, ArrowRight, ArrowLeft, Terminal, Shield, CheckCircle, Layers } from "lucide-react";
 import DocsBreadcrumb from "@/components/docs/DocsBreadcrumb";
 import CodeSnippet from "@/components/docs/CodeSnippet";
 
@@ -62,11 +62,11 @@ volumes:
         </p>
       </div>
 
-      {/* Production Architecture */}
-      <div className="glass-panel rounded-xl p-5 space-y-3">
+      {/* Ingress Topologies */}
+      <div id="topologies" className="glass-panel rounded-xl p-5 space-y-3">
         <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-200 flex items-center space-x-2">
           <Server className="h-4 w-4 text-emerald-400" />
-          <span>Ingress Architecture</span>
+          <span>Deployment Topologies &amp; Ingress</span>
         </h2>
         <div className="font-mono text-xs text-zinc-300 p-3 rounded-lg bg-black/60 border border-white/[0.06] leading-relaxed">
           Agent Application &rarr; [Hera Proxy:8080] &rarr; [Upstream LLM Provider]
@@ -77,22 +77,35 @@ volumes:
         </div>
       </div>
 
-      {/* Environment Config */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-bold text-white font-sans">Configuration Environment Variables</h2>
-        <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-          Configure proxy behavior via environment variables or a <code className="text-zinc-300 font-mono">.env</code> file:
-        </p>
-        <CodeSnippet code={envConfig} language="bash" filename=".env.production" />
-      </div>
-
-      {/* Docker Compose */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-bold text-white font-sans">Production Docker Compose</h2>
+      {/* Docker Config */}
+      <div id="docker-config" className="space-y-3">
+        <h2 className="text-lg font-bold text-white font-sans">stateguard-proxy Configuration &amp; Docker Compose</h2>
         <p className="text-xs text-zinc-400 font-sans leading-relaxed">
           Run Hera alongside Redis with automatic health monitoring and container restarts:
         </p>
         <CodeSnippet code={dockerCompose} language="yaml" filename="docker-compose.yml" />
+      </div>
+
+      {/* Redis Ephemeral RAM Vault */}
+      <div id="redis-vault" className="glass-panel rounded-xl p-5 space-y-3">
+        <h2 className="text-sm font-bold text-white font-sans flex items-center space-x-2">
+          <Layers className="h-4 w-4 text-emerald-400" />
+          <span>Redis Ephemeral RAM Vault Isolation</span>
+        </h2>
+        <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+          In <code className="text-zinc-200 font-mono">STATEFUL_VAULT</code> mode, raw chain-of-thought blocks
+          are committed to an ephemeral, AES-256 encrypted Redis hash with an aggressive TTL (e.g. 3600s).
+          The client receives only an opaque cryptographic handle UUID.
+        </p>
+      </div>
+
+      {/* Environment Config */}
+      <div id="env-reference" className="space-y-3">
+        <h2 className="text-lg font-bold text-white font-sans">Environment Variables Reference</h2>
+        <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+          Configure proxy behavior via environment variables or a <code className="text-zinc-300 font-mono">.env</code> file:
+        </p>
+        <CodeSnippet code={envConfig} language="bash" filename=".env.production" />
       </div>
 
       {/* Navigation */}

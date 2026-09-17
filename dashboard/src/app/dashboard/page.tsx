@@ -1,10 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MetricCards from "@/components/dashboard/MetricCards";
 import AttackSimulator, { SimulationResult } from "@/components/dashboard/AttackSimulator";
 import EventStream, { SecurityEvent } from "@/components/dashboard/EventStream";
-import { Shield, RefreshCw } from "lucide-react";
+import {
+  Shield,
+  RefreshCw,
+  Play,
+  Pause,
+  Zap,
+  Activity,
+  Radio,
+  Sliders,
+} from "lucide-react";
 
 const INITIAL_EVENTS: SecurityEvent[] = [
   {
@@ -77,6 +86,37 @@ const INITIAL_EVENTS: SecurityEvent[] = [
   },
 ];
 
+// Realistic synthetic streaming pool
+const STREAM_SAMPLE_TEMPLATES = [
+  {
+    tenant: "fintech-cloud-sec",
+    user: "usr_alice_architect",
+    session: "sess-agent-worker-09",
+    type: "CROSS_USER_REPLAY",
+    severity: "CRITICAL" as const,
+    model: "claude-3-7-sonnet",
+    reason: "Cryptographic context mismatch: user context 'usr_mallory' rejected for session 'usr_alice_architect'",
+  },
+  {
+    tenant: "acme-corp",
+    user: "usr_pipeline_runner",
+    session: "sess-langchain-agent-12",
+    type: "SECRET_IN_STATE",
+    severity: "HIGH" as const,
+    model: "gpt-4o",
+    reason: "OpenTelemetry span intercepted: OpenAI sk-proj key redacted inline (H=4.82 bits)",
+  },
+  {
+    tenant: "global-health-ai",
+    user: "usr_research_lead",
+    session: "sess-claude-audit-77",
+    type: "MODEL_MISMATCH",
+    severity: "HIGH" as const,
+    model: "claude-3-5-haiku-20241022",
+    reason: "Model lineage downgrade attempt: state bound to Opus cannot be decrypted by Haiku",
+  },
+];
+
 export default function DashboardThreatFeedPage() {
   const [events, setEvents] = useState<SecurityEvent[]>(INITIAL_EVENTS);
   const [stats, setStats] = useState({
@@ -85,6 +125,54 @@ export default function DashboardThreatFeedPage() {
     secretsRedacted: 1942,
     p99LatencyMs: 0.49,
   });
+
+  const [isStreaming, setIsStreaming] = useState<boolean>(true);
+  const [streamIntervalMs, setStreamIntervalMs] = useState<number>(8000);
+  const [lastPacketTime, setLastPacketTime] = useState<string>("Just now");
+
+  // Background Simulated Telemetry Stream Engine
+  useEffect(() => {
+    if (!isStreaming) return;
+
+    const interval = setInterval(() => {
+      const template =
+        STREAM_SAMPLE_TEMPLATES[Math.floor(Math.random() * STREAM_SAMPLE_TEMPLATES.length)];
+
+      const newEvt: SecurityEvent = {
+        id: `evt-${Date.now().toString().slice(-4)}`,
+        tenant_id: template.tenant,
+        session_id: template.session,
+        user_id: template.user,
+        event_type: template.type,
+        severity: template.severity,
+        payload_fingerprint: `sgh_${Math.random().toString(16).substring(2, 10)}`,
+        model: template.model,
+        metadata: {
+          reason: template.reason,
+          turn: Math.floor(Math.random() * 6) + 1,
+        },
+        created_at: new Date().toISOString(),
+      };
+
+      setEvents((prev) => [newEvt, ...prev.slice(0, 49)]); // keep latest 50 events
+      setLastPacketTime(new Date().toLocaleTimeString());
+
+      setStats((prev) => ({
+        ...prev,
+        totalInspected: prev.totalInspected + Math.floor(Math.random() * 12) + 4,
+        attacksBlocked:
+          template.type !== "SECRET_IN_STATE"
+            ? prev.attacksBlocked + 1
+            : prev.attacksBlocked,
+        secretsRedacted:
+          template.type === "SECRET_IN_STATE"
+            ? prev.secretsRedacted + 1
+            : prev.secretsRedacted,
+      }));
+    }, streamIntervalMs);
+
+    return () => clearInterval(interval);
+  }, [isStreaming, streamIntervalMs]);
 
   const handleAttackTriggered = (result: SimulationResult) => {
     const newEvent: SecurityEvent = {
@@ -100,7 +188,10 @@ export default function DashboardThreatFeedPage() {
           : "SECRET_IN_STATE",
       severity: result.attackType === "SANITIZATION_TRAP" ? "HIGH" : "CRITICAL",
       payload_fingerprint: `sgh_${Math.random().toString(16).substring(2, 10)}`,
-      model: result.attackType === "MODEL_DOWNGRADE" ? "claude-3-5-haiku-20241022" : "claude-3-7-sonnet",
+      model:
+        result.attackType === "MODEL_DOWNGRADE"
+          ? "claude-3-5-haiku-20241022"
+          : "claude-3-7-sonnet",
       metadata: {
         reason: result.message,
         turn: 2,
@@ -118,6 +209,32 @@ export default function DashboardThreatFeedPage() {
         result.status === "BLOCKED" ? prev.attacksBlocked + 1 : prev.attacksBlocked,
       secretsRedacted:
         result.status === "SANITIZED" ? prev.secretsRedacted + 1 : prev.secretsRedacted,
+    }));
+  };
+
+  const handleBurstSimulation = () => {
+    const burstEvents: SecurityEvent[] = STREAM_SAMPLE_TEMPLATES.map((tmpl, idx) => ({
+      id: `evt-burst-${Date.now().toString().slice(-3)}-${idx}`,
+      tenant_id: tmpl.tenant,
+      session_id: tmpl.session,
+      user_id: tmpl.user,
+      event_type: tmpl.type,
+      severity: tmpl.severity,
+      payload_fingerprint: `sgh_${Math.random().toString(16).substring(2, 10)}`,
+      model: tmpl.model,
+      metadata: {
+        reason: tmpl.reason,
+        turn: idx + 1,
+      },
+      created_at: new Date().toISOString(),
+    }));
+
+    setEvents((prev) => [...burstEvents, ...prev]);
+    setStats((prev) => ({
+      ...prev,
+      totalInspected: prev.totalInspected + 25,
+      attacksBlocked: prev.attacksBlocked + 2,
+      secretsRedacted: prev.secretsRedacted + 1,
     }));
   };
 
@@ -150,13 +267,46 @@ export default function DashboardThreatFeedPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5 self-start sm:self-auto">
+        {/* Streaming Controls Bar */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Live Stream Toggle Button */}
+          <button
+            onClick={() => setIsStreaming(!isStreaming)}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition border ${
+              isStreaming
+                ? "bg-emerald-950/50 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50"
+                : "bg-zinc-900 border-white/[0.08] text-zinc-400 hover:text-white"
+            }`}
+          >
+            {isStreaming ? (
+              <>
+                <Radio className="h-3 w-3 text-emerald-400 animate-pulse" />
+                <span>Stream: LIVE</span>
+              </>
+            ) : (
+              <>
+                <Pause className="h-3 w-3 text-zinc-400" />
+                <span>Stream: PAUSED</span>
+              </>
+            )}
+          </button>
+
+          {/* Burst Injection Button */}
+          <button
+            onClick={handleBurstSimulation}
+            className="flex items-center space-x-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] px-3 py-1.5 text-xs font-mono text-zinc-300 hover:text-white transition"
+            title="Inject multi-tenant concurrent burst"
+          >
+            <Zap className="h-3 w-3 text-amber-400" />
+            <span>Burst (3x)</span>
+          </button>
+
           <button
             onClick={handleResetFeed}
-            className="flex items-center space-x-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] px-3 py-1.5 text-xs font-mono text-zinc-300 hover:text-white transition"
+            className="flex items-center space-x-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] px-3 py-1.5 text-xs font-mono text-zinc-400 hover:text-white transition"
           >
-            <RefreshCw className="h-3 w-3 text-zinc-400" />
-            <span>Reset Feed</span>
+            <RefreshCw className="h-3 w-3" />
+            <span>Reset</span>
           </button>
         </div>
       </div>
@@ -169,19 +319,22 @@ export default function DashboardThreatFeedPage() {
 
       {/* 3. Real-Time Threat Stream & Payload Inspector */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <h3 className="text-sm font-semibold text-white tracking-tight font-sans">
-              Live Threat Stream
+              Live Ingestion Stream
             </h3>
             <span className="inline-flex items-center space-x-1 text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Active Ingestion</span>
+              <span className={`h-1.5 w-1.5 rounded-full bg-emerald-400 ${isStreaming ? "animate-pulse" : ""}`} />
+              <span>{isStreaming ? "Active Ingestion (~120 req/s)" : "Ingestion Paused"}</span>
             </span>
           </div>
-          <span className="text-[11px] font-mono text-zinc-500">
-            {events.length} Events Logged
-          </span>
+
+          <div className="flex items-center space-x-3 text-[11px] font-mono text-zinc-500">
+            <span>Last packet: {lastPacketTime}</span>
+            <span>&middot;</span>
+            <span>{events.length} Events In-Memory</span>
+          </div>
         </div>
 
         <EventStream events={events} />

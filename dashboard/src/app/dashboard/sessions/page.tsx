@@ -13,6 +13,13 @@ import {
   Fingerprint,
   Terminal,
   Lock,
+  GitCommit,
+  Network,
+  ListFilter,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  Maximize2,
 } from "lucide-react";
 
 interface DAGNode {
@@ -181,10 +188,46 @@ const INITIAL_SESSIONS: AgentSession[] = [
   },
 ];
 
+// Branch color metadata
+const BRANCH_CONFIG: Record<
+  string,
+  { name: string; color: string; bg: string; border: string; colIndex: number }
+> = {
+  main: {
+    name: "main",
+    color: "#10b981",
+    bg: "rgba(16, 185, 129, 0.12)",
+    border: "rgba(16, 185, 129, 0.3)",
+    colIndex: 0,
+  },
+  branch_alpha: {
+    name: "branch_alpha",
+    color: "#a855f7",
+    bg: "rgba(168, 85, 247, 0.12)",
+    border: "rgba(168, 85, 247, 0.3)",
+    colIndex: 1,
+  },
+  branch_beta: {
+    name: "branch_beta",
+    color: "#f59e0b",
+    bg: "rgba(245, 158, 11, 0.12)",
+    border: "rgba(245, 158, 11, 0.3)",
+    colIndex: 2,
+  },
+  branch_gamma: {
+    name: "branch_gamma",
+    color: "#06b6d4",
+    bg: "rgba(6, 182, 212, 0.12)",
+    border: "rgba(6, 182, 212, 0.3)",
+    colIndex: 3,
+  },
+};
+
 export default function SessionAuditPage() {
   const [sessions, setSessions] = useState<AgentSession[]>(INITIAL_SESSIONS);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("sess_prod_01");
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node_3a");
+  const [viewMode, setViewMode] = useState<"GRAPH" | "LIST">("GRAPH");
   const [copiedRoot, setCopiedRoot] = useState<boolean>(false);
   const [isTampered, setIsTampered] = useState<boolean>(false);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
@@ -205,7 +248,7 @@ export default function SessionAuditPage() {
     setTimeout(() => {
       setIsVerifying(false);
       setVerifySuccess(!isTampered);
-    }, 450);
+    }, 600);
   };
 
   const handleToggleTamper = () => {
@@ -261,6 +304,34 @@ export default function SessionAuditPage() {
     setSelectedNodeId(newNode.id);
   };
 
+  // Coordinates calculation for SVG DAG Graph View
+  // Each branch has an X lane, each turn level has a Y row
+  const getBranchConfig = (branch: string) =>
+    BRANCH_CONFIG[branch] || {
+      name: branch,
+      color: "#38bdf8",
+      bg: "rgba(56, 189, 248, 0.12)",
+      border: "rgba(56, 189, 248, 0.3)",
+      colIndex: 2,
+    };
+
+  // Node position mapping: turn -> branches
+  const getNodeCoordinates = (node: DAGNode, allNodes: DAGNode[]) => {
+    const branchCfg = getBranchConfig(node.branch);
+    // Lanes spacing
+    const laneWidth = 72;
+    const startX = 54;
+    const x = startX + branchCfg.colIndex * laneWidth;
+
+    // Y spacing based on turn sequence
+    // Calculate index within same turn if multiple parallel nodes
+    const sameTurnNodes = allNodes.filter((n) => n.turn === node.turn);
+    const turnIndex = sameTurnNodes.findIndex((n) => n.id === node.id);
+    const y = 50 + node.turn * 82 + turnIndex * 6;
+
+    return { x, y };
+  };
+
   return (
     <div className="space-y-8 animate-enter-down">
       {/* Page Header */}
@@ -293,7 +364,7 @@ export default function SessionAuditPage() {
           <button
             onClick={handleVerifyTree}
             disabled={isVerifying}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 font-sans font-medium text-xs text-black transition active:scale-[0.99] disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 font-sans font-medium text-xs text-black transition active:scale-[0.99] disabled:opacity-50 shadow-sm"
           >
             <RefreshCw className={`h-3 w-3 ${isVerifying ? "animate-spin" : ""}`} />
             <span>Verify Merkle State</span>
@@ -383,7 +454,7 @@ export default function SessionAuditPage() {
           </div>
         </div>
 
-        {/* Center Column: Visual DAG Flow (5 cols) */}
+        {/* Center Column: Visual Connected DAG Flow (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="text-xs font-mono font-medium text-zinc-400 uppercase tracking-wider flex items-center space-x-2">
@@ -391,104 +462,320 @@ export default function SessionAuditPage() {
               <span>Merkle State DAG Nodes</span>
             </div>
 
-            {verifySuccess !== null && (
-              <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded flex items-center space-x-1 ${
-                  verifySuccess
-                    ? "bg-emerald-950/50 border border-emerald-500/40 text-emerald-300"
-                    : "bg-rose-950/50 border border-rose-500/40 text-rose-300"
+            {/* View Mode Toggle: Graph vs List */}
+            <div className="flex items-center space-x-1 bg-black/50 border border-white/[0.08] p-0.5 rounded-lg">
+              <button
+                onClick={() => setViewMode("GRAPH")}
+                className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono transition ${
+                  viewMode === "GRAPH"
+                    ? "bg-zinc-800 text-white font-medium"
+                    : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
-                {verifySuccess ? (
-                  <>
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 mr-1" />
-                    <span>Inclusion Proof Verified</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldAlert className="h-3.5 w-3.5 text-rose-400 mr-1" />
-                    <span>Digest Mismatch Alert</span>
-                  </>
-                )}
-              </span>
-            )}
-          </div>
-
-          {/* Node Flow Visualizer */}
-          <div className="glass-panel rounded-xl p-4 space-y-3 relative overflow-hidden">
-            <div className="text-[11px] text-zinc-400 font-mono">
-              Click any turn or sub-agent branch to inspect cryptographic state and witness path.
-            </div>
-
-            <div className="space-y-2.5">
-              {currentSession.nodes.map((node) => {
-                const isSelected = node.id === selectedNodeId;
-                const isForked = node.branch !== "main";
-
-                return (
-                  <div
-                    key={node.id}
-                    onClick={() => setSelectedNodeId(node.id)}
-                    className={`relative p-3 rounded-lg border transition-all cursor-pointer ${
-                      isForked ? "ml-5 border-l-2 border-l-zinc-600" : ""
-                    } ${
-                      isSelected
-                        ? "bg-zinc-900 border-white/[0.2] shadow-sm"
-                        : "bg-black/40 border-white/[0.05] hover:border-white/[0.12] hover:bg-zinc-900/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        {isForked ? (
-                          <GitBranch className="h-3 w-3 text-zinc-400" />
-                        ) : (
-                          <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                        )}
-                        <span className="font-mono text-xs font-semibold text-white">
-                          Turn #{node.turn}
-                        </span>
-                        {isForked && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-white/[0.06]">
-                            {node.branch}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <span className="text-[10px] font-mono text-zinc-500">
-                          {node.tokens} tok
-                        </span>
-                        {node.status === "tampered" ? (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300">
-                            TAMPERED
-                          </span>
-                        ) : node.status === "forked" ? (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-white/[0.08] text-zinc-300">
-                            FORKED
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-400">
-                            VERIFIED
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-xs text-zinc-300 font-sans mt-1 font-medium">
-                      {node.title}
-                    </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono mt-1.5">
-                      <span className="truncate max-w-[200px]">
-                        hash: {node.hash.slice(0, 16)}...
-                      </span>
-                      <span>{node.latencyMs}ms</span>
-                    </div>
-                  </div>
-                );
-              })}
+                <Network className="h-3 w-3" />
+                <span>Graph</span>
+              </button>
+              <button
+                onClick={() => setViewMode("LIST")}
+                className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono transition ${
+                  viewMode === "LIST"
+                    ? "bg-zinc-800 text-white font-medium"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <ListFilter className="h-3 w-3" />
+                <span>List</span>
+              </button>
             </div>
           </div>
+
+          {verifySuccess !== null && (
+            <div
+              className={`p-2.5 rounded-lg text-xs font-mono flex items-center space-x-2 border transition-all ${
+                verifySuccess
+                  ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-300"
+                  : "bg-rose-950/40 border-rose-500/40 text-rose-300"
+              }`}
+            >
+              {verifySuccess ? (
+                <>
+                  <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span>Subtree inclusion proof matches Root digest: All HMAC tags valid.</span>
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-4 w-4 text-rose-400 shrink-0" />
+                  <span>Digest mismatch detected: Node signature tampered, execution halted.</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Graphical SVG Connected DAG View */}
+          {viewMode === "GRAPH" ? (
+            <div className="glass-panel rounded-xl p-4 space-y-3 relative overflow-hidden">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono pb-1 border-b border-white/[0.06]">
+                <div className="flex items-center space-x-3">
+                  <span className="flex items-center space-x-1">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    <span className="text-[10px]">main</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <span className="h-2 w-2 rounded-full bg-purple-400" />
+                    <span className="text-[10px]">alpha</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <span className="h-2 w-2 rounded-full bg-amber-400" />
+                    <span className="text-[10px]">beta</span>
+                  </span>
+                  {currentSession.nodes.some((n) => n.branch === "branch_gamma") && (
+                    <span className="flex items-center space-x-1">
+                      <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                      <span className="text-[10px]">gamma</span>
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-zinc-500">Interactive Visual Tree</span>
+              </div>
+
+              {/* Connected Visual Canvas */}
+              <div className="relative min-h-[440px] w-full bg-black/40 rounded-lg p-2 overflow-x-auto border border-white/[0.04]">
+                {/* SVG Connecting Bézier curves */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  style={{ minWidth: "360px", minHeight: "440px" }}
+                >
+                  <defs>
+                    <linearGradient id="edgeGradMain" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.7" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.4" />
+                    </linearGradient>
+                    <linearGradient id="edgeGradAlpha" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#a855f7" stopOpacity="0.6" />
+                    </linearGradient>
+                    <linearGradient id="edgeGradBeta" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.6" />
+                    </linearGradient>
+                    <linearGradient id="edgeGradGamma" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.6" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Draw edges between parent and child */}
+                  {currentSession.nodes.map((node) => {
+                    const parent = currentSession.nodes.find((p) => p.hash === node.parentHash);
+                    if (!parent) return null;
+
+                    const pCoords = getNodeCoordinates(parent, currentSession.nodes);
+                    const cCoords = getNodeCoordinates(node, currentSession.nodes);
+
+                    // Curve path
+                    const dy = cCoords.y - pCoords.y;
+                    const pathD = `M ${pCoords.x} ${pCoords.y} C ${pCoords.x} ${pCoords.y + dy * 0.5}, ${cCoords.x} ${cCoords.y - dy * 0.5}, ${cCoords.x} ${cCoords.y}`;
+
+                    const isHighlighted =
+                      node.id === selectedNodeId || parent.id === selectedNodeId;
+
+                    return (
+                      <g key={`edge-${parent.id}-${node.id}`}>
+                        <path
+                          d={pathD}
+                          fill="none"
+                          stroke={
+                            node.status === "tampered"
+                              ? "#f43f5e"
+                              : node.branch === "branch_alpha"
+                              ? "url(#edgeGradAlpha)"
+                              : node.branch === "branch_beta"
+                              ? "url(#edgeGradBeta)"
+                              : node.branch === "branch_gamma"
+                              ? "url(#edgeGradGamma)"
+                              : "url(#edgeGradMain)"
+                          }
+                          strokeWidth={isHighlighted ? "2.5" : "1.5"}
+                          strokeDasharray={node.status === "forked" ? "4,3" : undefined}
+                          className="transition-all duration-300"
+                        />
+                        {/* Dynamic verification pulse */}
+                        {isVerifying && (
+                          <circle r="3" fill="#10b981" className="animate-ping">
+                            <animateMotion path={pathD} dur="0.6s" repeatCount="1" />
+                          </circle>
+                        )}
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                {/* Render Interactive Nodes */}
+                <div className="relative z-10 space-y-2">
+                  {currentSession.nodes.map((node) => {
+                    const coords = getNodeCoordinates(node, currentSession.nodes);
+                    const isSelected = node.id === selectedNodeId;
+                    const branchCfg = getBranchConfig(node.branch);
+
+                    return (
+                      <div
+                        key={node.id}
+                        onClick={() => setSelectedNodeId(node.id)}
+                        className={`group relative flex items-start space-x-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-zinc-900 border-white/[0.25] shadow-md ring-1 ring-white/[0.1]"
+                            : "bg-[#09090b]/80 border-white/[0.05] hover:border-white/[0.12] hover:bg-zinc-900/60"
+                        }`}
+                        style={{
+                          marginLeft: `${branchCfg.colIndex * 18}px`,
+                        }}
+                      >
+                        {/* Status Node Circle */}
+                        <div className="shrink-0 mt-0.5 relative">
+                          <div
+                            className={`h-4 w-4 rounded-full flex items-center justify-center border ${
+                              node.status === "tampered"
+                                ? "bg-rose-950 border-rose-500 animate-pulse"
+                                : node.status === "forked"
+                                ? "bg-purple-950 border-purple-500"
+                                : "bg-emerald-950 border-emerald-500"
+                            }`}
+                          >
+                            <span
+                              className="h-1.5 w-1.5 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  node.status === "tampered" ? "#f43f5e" : branchCfg.color,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Node Card Summary */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center space-x-1.5 truncate">
+                              <span className="font-mono text-xs font-semibold text-white">
+                                T#{node.turn}
+                              </span>
+                              <span
+                                className="text-[10px] font-mono px-1.5 py-0.2 rounded border"
+                                style={{
+                                  backgroundColor: branchCfg.bg,
+                                  borderColor: branchCfg.border,
+                                  color: branchCfg.color,
+                                }}
+                              >
+                                {node.branch}
+                              </span>
+                              <span className="text-[10px] font-mono text-zinc-500 capitalize">
+                                {node.role}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center space-x-1.5 shrink-0">
+                              <span className="text-[10px] font-mono text-zinc-500">
+                                {node.latencyMs}ms
+                              </span>
+                              {node.status === "tampered" ? (
+                                <span className="text-[9px] font-mono px-1 rounded bg-rose-950/80 border border-rose-500 text-rose-300">
+                                  MUTATED
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-mono px-1 rounded bg-zinc-800 text-zinc-400">
+                                  {node.tokens} tok
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-zinc-300 font-sans mt-1 font-medium truncate">
+                            {node.title}
+                          </div>
+
+                          <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
+                            hash: {node.hash.slice(0, 16)}...
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Audit List View */
+            <div className="glass-panel rounded-xl p-4 space-y-2 relative overflow-hidden">
+              <div className="text-[11px] text-zinc-400 font-mono pb-2 border-b border-white/[0.06]">
+                Sequential turn list view with cryptographic parent links.
+              </div>
+
+              <div className="space-y-2">
+                {currentSession.nodes.map((node) => {
+                  const isSelected = node.id === selectedNodeId;
+                  const isForked = node.branch !== "main";
+
+                  return (
+                    <div
+                      key={node.id}
+                      onClick={() => setSelectedNodeId(node.id)}
+                      className={`relative p-3 rounded-lg border transition-all cursor-pointer ${
+                        isForked ? "ml-4 border-l-2 border-l-zinc-600" : ""
+                      } ${
+                        isSelected
+                          ? "bg-zinc-900 border-white/[0.2] shadow-sm"
+                          : "bg-black/40 border-white/[0.05] hover:border-white/[0.12] hover:bg-zinc-900/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {isForked ? (
+                            <GitBranch className="h-3 w-3 text-zinc-400" />
+                          ) : (
+                            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                          )}
+                          <span className="font-mono text-xs font-semibold text-white">
+                            Turn #{node.turn}
+                          </span>
+                          {isForked && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-white/[0.06]">
+                              {node.branch}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[10px] font-mono text-zinc-500">
+                            {node.tokens} tok
+                          </span>
+                          {node.status === "tampered" ? (
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300">
+                              TAMPERED
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-400">
+                              VERIFIED
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-zinc-300 font-sans mt-1 font-medium">
+                        {node.title}
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono mt-1.5">
+                        <span className="truncate max-w-[200px]">
+                          hash: {node.hash.slice(0, 16)}...
+                        </span>
+                        <span>{node.latencyMs}ms</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Node Inspector & Witness Proof (4 cols) */}
@@ -519,7 +806,7 @@ export default function SessionAuditPage() {
             {/* Context Binding Parameters */}
             <div className="bg-black/50 border border-white/[0.06] rounded-lg p-3 space-y-2 font-mono text-[11px]">
               <div className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">
-                Contextual Binding Tuple
+                Contextual Binding Tuple (AD)
               </div>
               <div className="grid grid-cols-2 gap-1 text-[10px]">
                 <div className="text-zinc-400">Tenant:</div>
@@ -597,4 +884,3 @@ export default function SessionAuditPage() {
     </div>
   );
 }
-
