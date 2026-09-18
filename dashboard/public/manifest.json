@@ -1,0 +1,16 @@
+{
+  "name": "Hera | Zero-Trust AI State Gateway",
+  "short_name": "Hera",
+  "description": "Enterprise security gateway mitigating Cryptographic Contextual Misbinding (arXiv:2608.09867) in frontier LLMs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050506",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

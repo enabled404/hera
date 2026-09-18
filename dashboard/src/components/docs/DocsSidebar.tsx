@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
-  Shield,
   Layers,
   Terminal,
   Cpu,
@@ -17,6 +16,7 @@ import {
   Command,
   X,
 } from "lucide-react";
+import HeraLogo from "@/components/ui/HeraLogo";
 
 interface NavItem {
   title: string;
@@ -181,7 +181,7 @@ export default function DocsSidebar() {
         {/* Sandbox Promotion Widget */}
         <div className="p-3.5 rounded-xl bg-gradient-to-b from-zinc-900/90 to-black border border-white/[0.08] space-y-2">
           <div className="text-xs font-semibold text-white font-sans flex items-center space-x-1.5">
-            <Shield className="h-3.5 w-3.5 text-emerald-400" />
+            <HeraLogo size={16} glow />
             <span>Interactive Sandbox</span>
           </div>
           <p className="text-[11px] text-zinc-400 font-sans leading-relaxed">

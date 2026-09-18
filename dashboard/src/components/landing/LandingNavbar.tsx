@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Github, ArrowRight, Menu, X, ExternalLink } from "lucide-react";
+import { Github, ArrowRight, Menu, X, ExternalLink } from "lucide-react";
+import HeraLogo from "@/components/ui/HeraLogo";
 
 export default function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -25,15 +26,9 @@ export default function LandingNavbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Left: Geometric Shield Brand Mark */}
+        {/* Left: Geometric Hera Brand Mark */}
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="relative flex items-center justify-center h-9 w-9 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/[0.12] shadow-sm group-hover:border-emerald-500/40 transition">
-            <Shield className="h-4.5 w-4.5 text-emerald-400 group-hover:scale-105 transition" />
-            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-          </div>
+          <HeraLogo size={32} glow />
           <div className="flex items-center space-x-2">
             <span className="text-base font-bold tracking-tight text-white font-sans">HERA</span>
             <span className="text-zinc-600 font-mono text-sm">|</span>

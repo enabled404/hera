@@ -2,7 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Github, ExternalLink, Heart, Terminal } from "lucide-react";
+import { Github, ExternalLink, Heart, Terminal } from "lucide-react";
+import HeraLogo from "@/components/ui/HeraLogo";
 
 export default function LandingFooter() {
   return (
@@ -13,9 +14,7 @@ export default function LandingFooter() {
           {/* Col 1: Platform Overview */}
           <div className="space-y-3 md:col-span-2">
             <div className="flex items-center space-x-2.5">
-              <div className="flex items-center justify-center h-7 w-7 rounded-md bg-zinc-900 border border-white/[0.1]">
-                <Shield className="h-3.5 w-3.5 text-emerald-400" />
-              </div>
+              <HeraLogo size={24} glow />
               <span className="text-sm font-bold text-white font-sans">HERA · STATEGUARD</span>
               <span className="text-zinc-600">|</span>
               <span className="text-xs text-zinc-400">v1.1.0 Enterprise</span>

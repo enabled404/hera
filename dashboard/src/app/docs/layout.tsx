@@ -2,9 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, ArrowRight, Github, ExternalLink, ArrowLeft } from "lucide-react";
+import { ArrowRight, Github, ExternalLink, ArrowLeft } from "lucide-react";
 import DocsSidebar from "@/components/docs/DocsSidebar";
 import DocsTOC from "@/components/docs/DocsTOC";
+import HeraLogo from "@/components/ui/HeraLogo";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,9 +15,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-2.5 group">
-              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-zinc-900 border border-white/[0.1] group-hover:border-emerald-500/40 transition">
-                <Shield className="h-4 w-4 text-emerald-400" />
-              </div>
+              <HeraLogo size={28} glow />
               <div className="flex items-center space-x-1.5">
                 <span className="font-bold text-sm text-white">HERA</span>
                 <span className="text-zinc-600 font-mono">/</span>

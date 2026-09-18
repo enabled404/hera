@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Shield,
   ArrowLeft,
   Github,
   ExternalLink,
@@ -14,6 +13,7 @@ import {
   Sliders,
   BookOpen,
 } from "lucide-react";
+import HeraLogo from "@/components/ui/HeraLogo";
 
 export default function ConsoleNavbar() {
   const pathname = usePathname();
@@ -44,9 +44,7 @@ export default function ConsoleNavbar() {
             <span className="text-zinc-700">/</span>
 
             <div className="flex items-center space-x-2">
-              <div className="flex items-center justify-center h-6 w-6 rounded bg-zinc-900 border border-white/[0.1]">
-                <Shield className="h-3.5 w-3.5 text-emerald-400" />
-              </div>
+              <HeraLogo size={22} glow />
               <span className="text-xs font-bold text-white font-sans tracking-tight">
                 Security Operations Center (SOC)
               </span>

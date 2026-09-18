@@ -13,13 +13,15 @@
 
 <br />
 
+[**Live Platform**](https://herasec.vercel.app) •
 [**Quickstart**](#-quickstart) •
 [**The Core Flaw**](#-the-core-flaw-cryptographic-contextual-misbinding) •
 [**Architecture**](#-architecture) •
 [**Integration**](#-drop-in-integration) •
 [**Benchmarks**](#-performance-benchmarks) •
 [**Threat Matrix**](#-security-threat-coverage-matrix) •
-[**Documentation**](https://stateguard.io/docs)
+[**Documentation**](https://herasec.vercel.app/docs) •
+[**Interactive SOC**](https://herasec.vercel.app/dashboard)
 
 </div>
 

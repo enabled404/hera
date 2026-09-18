@@ -16,6 +16,25 @@ import {
 import DocsBreadcrumb from "@/components/docs/DocsBreadcrumb";
 import CodeSnippet from "@/components/docs/CodeSnippet";
 
+const docsJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Hera StateGuard Documentation & Technical Specifications",
+  "description":
+    "Comprehensive reference documentation for Hera StateGuard: reverse proxy deployment, CLI scanner, cryptographic invariants, and SDK integrations.",
+  "url": "https://herasec.vercel.app/docs",
+  "author": {
+    "@type": "Person",
+    "name": "Saad Khalid",
+    "url": "https://saadkhalidhere.vercel.app",
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Hera Security",
+    "url": "https://herasec.vercel.app",
+  },
+};
+
 export default function DocsOverviewPage() {
   const quickstartDocker = `# Clone the repository
 git clone https://github.com/enabled404/hera.git
@@ -63,6 +82,10 @@ print("Protected State Handle:", response.stateguard_handle)`;
 
   return (
     <div className="space-y-8 animate-enter-down">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(docsJsonLd) }}
+      />
       <DocsBreadcrumb category="Getting Started" currentPage="Overview & Quickstart" />
 
       {/* Header */}
