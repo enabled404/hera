@@ -1,0 +1,45 @@
+{
+  "name": "@stateguard/sdk",
+  "version": "1.1.0",
+  "description": "Enterprise Agent State Security Gateway & Trace Auditing TypeScript SDK",
+  "homepage": "https://saadkhalidhere.vercel.app",
+  "bugs": "https://github.com/enabled404/hera/issues",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/sdk.test.mjs"
+  },
+  "keywords": [
+    "stateguard",
+    "security",
+    "ai",
+    "llm",
+    "gateway",
+    "chain-of-thought",
+    "reverse-proxy",
+    "anthropic",
+    "openai",
+    "opentelemetry"
+  ],
+  "author": "Saad Khalid <saadkhalid2000@outlook.com>",
+  "license": "Apache-2.0",
+  "repository": "github:enabled404/hera",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}
