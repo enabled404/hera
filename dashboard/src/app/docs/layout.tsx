@@ -1,13 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Github, ExternalLink, ArrowLeft } from "lucide-react";
+import { ArrowRight, Github, ExternalLink, ArrowLeft, Scale } from "lucide-react";
 import DocsSidebar from "@/components/docs/DocsSidebar";
 import DocsTOC from "@/components/docs/DocsTOC";
 import HeraLogo from "@/components/ui/HeraLogo";
+import ResponsibleUseModal from "@/components/ui/ResponsibleUseModal";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#050506] text-zinc-100 flex flex-col font-sans">
       {/* Docs Header */}
@@ -63,9 +66,20 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
       {/* Minimal Docs Footer */}
       <footer className="border-t border-white/[0.06] bg-[#050506] py-6 text-xs text-zinc-500 font-mono">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Hera StateGuard Documentation · v1.1.0 Enterprise</span>
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center space-x-2">
+            <span>Hera StateGuard Documentation &middot; v1.1.0 Enterprise</span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsTermsOpen(true)}
+              className="hover:text-zinc-300 transition flex items-center space-x-1"
+            >
+              <Scale className="h-3 w-3 text-zinc-500" />
+              <span>Responsible Use &amp; Terms</span>
+            </button>
+            <span className="text-zinc-700">&bull;</span>
             <a
               href="https://saadkhalidhere.vercel.app"
               target="_blank"
@@ -78,6 +92,9 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
       </footer>
+
+      {/* Responsible Use Modal */}
+      <ResponsibleUseModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
     </div>
   );
 }

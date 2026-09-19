@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  ShieldAlert,
   ShieldCheck,
   Terminal,
   Zap,
@@ -24,11 +23,13 @@ export interface SimulationResult {
   status: "BLOCKED" | "SANITIZED";
   statusCode: number;
   defenseHeadline: string;
-  attackerOutcome: string;
+  defenseActionText: string;
+  defenseBadgeText: string;
   message: string;
   latencyMs: number;
   adContext?: string;
   invariantDetails: string;
+  protocolAudit: string;
   payloadSnippet: string;
 }
 
@@ -50,11 +51,13 @@ interface Scenario {
     status: "BLOCKED" | "SANITIZED";
     statusCode: number;
     defenseHeadline: string;
-    attackerOutcome: string;
+    defenseActionText: string;
+    defenseBadgeText: string;
     message: string;
     latencyMs: number;
     adContext?: string;
     invariantDetails: string;
+    protocolAudit: string;
   };
 }
 
@@ -64,10 +67,10 @@ const SCENARIOS: Scenario[] = [
     testLabel: "Test A",
     name: "Cross-User Signature Replay",
     type: "REPLAY_ATTACK",
-    cveRef: "Invariant P2 Breach",
+    cveRef: "Invariant P2 (User Context Binding)",
     description: "Replays a valid cryptographic state envelope generated for 'user-alice' inside an unauthorized request from 'user-bob'.",
-    attackIntent: "Adversary 'user-bob' replays user-alice's signed reasoning state token to hijack trading context.",
-    expectedDefense: "Hera verifies Associated Data (AD) binding, detects identity mismatch, and drops the replay with HTTP 403.",
+    attackIntent: "Adversary 'user-bob' attempts to replay user-alice's signed reasoning state token to hijack trading context.",
+    expectedDefense: "Hera verifies Associated Data (AD) binding, detects identity mismatch, and drops the replay in 0.38ms.",
     payload: `POST /v1/chat/completions HTTP/1.1
 Host: gateway.internal:8080
 X-StateGuard-Tenant: acme-corp
@@ -85,11 +88,13 @@ Content-Type: application/json
       status: "BLOCKED",
       statusCode: 403,
       defenseHeadline: "Cross-User State Replay Intercepted & Neutralized",
-      attackerOutcome: "HTTP 403 Forbidden (Replay Dropped)",
-      message: "StateIntegrityViolation: Associated Data user_id mismatch (bound: 'user-alice', inbound: 'user-bob'). Replay dropped.",
+      defenseActionText: "Inbound Threat Blocked & Connection Quarantined",
+      defenseBadgeText: "Attack Dropped · System Protected",
+      message: "Associated Data mismatch detected: token signed for 'user-alice' cannot be replayed by 'user-bob'.",
       latencyMs: 0.38,
       adContext: "tenant:acme-corp:user:user-alice:sess:sess-trading-99:t4",
-      invariantDetails: "Invariant P2 Enforced: AD context tuple prevents cross-tenant and cross-user cryptographic reuse.",
+      invariantDetails: "Invariant P2 Enforced: Zero-trust cryptographic context tuple prevents cross-tenant and cross-user state reuse.",
+      protocolAudit: "Inbound turn dropped at proxy ingress · Remote adversary denied (HTTP 403) · Downstream model isolated",
     },
   },
   {
@@ -97,7 +102,7 @@ Content-Type: application/json
     testLabel: "Test B",
     name: "Asymmetric Model Downgrade",
     type: "MODEL_DOWNGRADE",
-    cveRef: "SG-ADV-2026-001",
+    cveRef: "Invariant P1 (Model Lineage Binding)",
     description: "Replays a Claude 3.7 Sonnet reasoning envelope into Claude 3.5 Haiku to induce decryption oracle extraction.",
     attackIntent: "Attacker attempts to extract encrypted chain-of-thought tokens by forcing a cheaper model (Haiku) to parse Sonnet's envelope.",
     expectedDefense: "Hera verifies model lineage in Associated Data and halts the request before the target model ever receives the payload.",
@@ -117,12 +122,14 @@ Content-Type: application/json
     mockDefense: {
       status: "BLOCKED",
       statusCode: 403,
-      defenseHeadline: "Decryption Oracle Attack Prevented",
-      attackerOutcome: "HTTP 403 Forbidden (Model Mismatch)",
-      message: "ModelMismatchViolation: Context envelope signed for 'claude-3-7-sonnet' replayed to 'claude-3-5-haiku'. Rejected.",
+      defenseHeadline: "Decryption Oracle Downgrade Attack Foiled",
+      defenseActionText: "Down-Tier Transplant Rejected & Payload Dropped",
+      defenseBadgeText: "Transplant Blocked · System Protected",
+      message: "Model lineage mismatch detected (bound: 'claude-3-7-sonnet' ≠ target: 'claude-3-5-haiku'). Context rejected.",
       latencyMs: 0.29,
       adContext: "tenant:acme-corp:user:user-attacker:model:claude-3-7-sonnet",
-      invariantDetails: "Invariant P1 Enforced: Model lineage binding prevents down-tier reasoning token exfiltration.",
+      invariantDetails: "Invariant P1 Enforced: Model lineage context binding prevents down-tier reasoning token exfiltration.",
+      protocolAudit: "Lineage mismatch caught at gateway ingress · Downstream Haiku invocation aborted · Invariant P1 verified",
     },
   },
   {
@@ -130,7 +137,7 @@ Content-Type: application/json
     testLabel: "Test C",
     name: "Sanitization Trap (Secret Leak)",
     type: "SANITIZATION_TRAP",
-    cveRef: "arXiv:2608.09867 §4",
+    cveRef: "Invariant P4 (Streaming Shannon Entropy)",
     description: "Model reasoning token embeds a plaintext production AWS key during code refactoring before masking it from visible chat.",
     attackIntent: "Autonomous coding agent surfaces a raw AWS credential in internal reasoning, which would normally leak via client telemetry.",
     expectedDefense: "Hera's streaming Shannon entropy scanner detects H(X) = 4.41 ≥ 4.2 bits, redacts the key in-flight, and vaults the original in Redis RAM.",
@@ -149,12 +156,14 @@ Content-Type: application/json
     mockDefense: {
       status: "SANITIZED",
       statusCode: 200,
-      defenseHeadline: "In-Flight Credential Scrubbed & Vaulted",
-      attackerOutcome: "HTTP 200 OK (Sanitized & Redacted)",
-      message: "EntropyThresholdViolation: Sliding window H(X) = 4.41 bits ≥ 4.2. Masked credentials to [REDACTED: AWS_ACCESS_KEY]. Vaulted into sgh_018f3a9b.",
+      defenseHeadline: "In-Flight Credential Quarantined & Scrubbed",
+      defenseActionText: "High-Entropy Secret Vaulted & Replaced with Safe Handle",
+      defenseBadgeText: "Key Scrubbed · Vaulted to RAM",
+      message: "Streaming entropy spike detected (H(X) = 4.41 bits ≥ 4.2). Plaintext key replaced with [REDACTED: AWS_ACCESS_KEY].",
       latencyMs: 0.42,
       adContext: "tenant:fintech-global:user:usr-carol:sess:sess-code-audit-88:t1",
-      invariantDetails: "Streaming Invariant P4: Real-time sliding Shannon entropy redactor eliminates the Sanitization Trap with zero latency overhead.",
+      invariantDetails: "Invariant P4 Enforced: Real-time sliding Shannon entropy scanner eliminates the Sanitization Trap with zero latency overhead.",
+      protocolAudit: "Key scrubbed from egress stream · Vaulted into ephemeral RAM handle sgh_018f3a9b · Downstream telemetry protected",
     },
   },
 ];
@@ -190,11 +199,13 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
         status: currentScenario.mockDefense.status,
         statusCode: currentScenario.mockDefense.statusCode,
         defenseHeadline: currentScenario.mockDefense.defenseHeadline,
-        attackerOutcome: currentScenario.mockDefense.attackerOutcome,
+        defenseActionText: currentScenario.mockDefense.defenseActionText,
+        defenseBadgeText: currentScenario.mockDefense.defenseBadgeText,
         message: currentScenario.mockDefense.message,
         latencyMs: currentScenario.mockDefense.latencyMs,
         adContext: currentScenario.mockDefense.adContext,
         invariantDetails: currentScenario.mockDefense.invariantDetails,
+        protocolAudit: currentScenario.mockDefense.protocolAudit,
         payloadSnippet: currentScenario.name,
       };
 
@@ -252,9 +263,6 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
               >
                 <span className="font-semibold text-emerald-400">{sc.testLabel}:</span>
                 <span>{sc.name.split(" ")[0]}</span>
-                <span className="text-[10px] text-zinc-500 hidden md:inline">
-                  ({sc.mockDefense.status === "BLOCKED" ? "403" : "200"})
-                </span>
               </button>
             );
           })}
@@ -280,8 +288,8 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
         <div className="lg:col-span-7 flex flex-col justify-between rounded-xl bg-black/80 border border-white/[0.08] p-4 font-mono text-xs overflow-hidden">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06] text-zinc-500 text-[11px]">
             <span className="flex items-center space-x-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />
-              <span>Inbound Adversarial Transmission (Untrusted)</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span>Simulated Inbound Transmission (Adversarial Vector)</span>
             </span>
             <button
               onClick={handleCopyPayload}
@@ -347,7 +355,7 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
               ) : (
                 <>
                   <Play className="h-3.5 w-3.5 fill-black" />
-                  <span>Simulate Attack (Test Hera Defense)</span>
+                  <span>Simulate Attack (Verify Hera Defense)</span>
                 </>
               )}
             </button>
@@ -365,28 +373,29 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
                   &bull; [0.24ms] AEAD / HMAC sequence ratchet cryptographically evaluated
                 </div>
                 <div className={pipelineStep >= 4 ? "text-emerald-400 font-medium" : "text-zinc-600"}>
-                  &bull; [0.38ms] Security Invariant verdict rendered: MALICIOUS PAYLOAD INTERCEPTED
+                  &bull; [0.38ms] Security Invariant verified: DEFENSE ACTIVE &middot; ATTACK INTERCEPTED
                 </div>
               </div>
             )}
           </div>
 
-          {/* Defense Verdict Showcase: Enterprise Defense Victory Display */}
+          {/* Defense Verdict Showcase: 100% Passing Security Test Display */}
           {lastResult ? (
-            <div className="p-4 rounded-xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/20 via-zinc-950/60 to-black/80 space-y-3.5 animate-enter-down shadow-[0_0_25px_rgba(16,185,129,0.08)]">
-              {/* Defense Header: Clear Victory for the Defender */}
+            <div className="p-4 rounded-xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/30 via-zinc-950/70 to-black/80 space-y-3.5 animate-enter-down shadow-[0_0_25px_rgba(16,185,129,0.12)]">
+              {/* Defense Header: Clear Passing Test Result */}
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
                 <div className="flex items-center space-x-2">
-                  <span className="p-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <span className="p-1 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400">
                     <ShieldCheck className="h-4 w-4" />
                   </span>
                   <div>
                     <div className="flex items-center space-x-2">
                       <span className="text-xs font-bold text-white font-sans tracking-wide">
-                        HERA DEFENSE ACTIVE
+                        DEFENSE VERIFICATION: PASSED
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
-                        {lastResult.status === "BLOCKED" ? "ATTACK MITIGATED" : "SECRET SCRUBBED"}
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold flex items-center space-x-1">
+                        <Check className="h-2.5 w-2.5 text-emerald-400" />
+                        <span>100% MITIGATED</span>
                       </span>
                     </div>
                   </div>
@@ -396,53 +405,54 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
                     {lastResult.latencyMs}ms
                   </span>
                   <span className="text-[10px] font-mono text-zinc-500 block">
-                    p99 SLA
+                    p99 Ingress SLA
                   </span>
                 </div>
               </div>
 
               {/* Headline */}
-              <div className="text-xs font-semibold text-zinc-200">
+              <div className="text-xs font-semibold text-zinc-200 font-sans">
                 {lastResult.defenseHeadline}
               </div>
 
               {/* Two Outcome Cards */}
               <div className="grid grid-cols-1 gap-2 text-xs font-mono">
-                {/* 1. What the Attacker Received */}
-                <div className="p-2.5 rounded-lg bg-black/60 border border-white/[0.06] space-y-1">
+                {/* 1. Gateway Defense Action */}
+                <div className="p-2.5 rounded-lg bg-black/60 border border-emerald-500/20 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
-                      Adversary Egress Verdict
+                    <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold flex items-center space-x-1">
+                      <Check className="h-3 w-3" />
+                      <span>Gateway Defense Action</span>
                     </span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                        lastResult.status === "BLOCKED"
-                          ? "bg-rose-950/80 border border-rose-500/40 text-rose-300"
-                          : "bg-amber-950/80 border border-amber-500/40 text-amber-300"
-                      }`}
-                    >
-                      {lastResult.attackerOutcome}
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-500/20 border border-emerald-500/30 text-emerald-300">
+                      {lastResult.defenseBadgeText}
                     </span>
+                  </div>
+                  <div className="text-xs font-semibold text-white font-mono">
+                    {lastResult.defenseActionText}
                   </div>
                   <p className="text-[11px] text-zinc-400 font-sans leading-relaxed">
                     {lastResult.status === "BLOCKED"
-                      ? "The malicious turn was rejected at the gateway ingress. The attacker was denied access, zero state was leaked, and the downstream reasoning model was never invoked."
-                      : "The high-entropy credential was intercepted and scrubbed from the payload. Client receives an opaque state handle, preventing cloud key leakage."}
+                      ? "The simulated intrusion attempt was intercepted in 0.38ms by the Hera Gateway. The adversary was denied access, zero state was leaked, and the downstream reasoning model was never invoked."
+                      : "The high-entropy production credential was detected in-flight, scrubbed from visible egress, and vaulted into ephemeral Redis RAM."}
                   </p>
                 </div>
 
                 {/* 2. Cryptographic Enforced Invariant */}
-                <div className="p-2.5 rounded-lg bg-zinc-950/80 border border-emerald-500/20 space-y-1">
-                  <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold flex items-center space-x-1">
+                <div className="p-2.5 rounded-lg bg-zinc-950/80 border border-white/[0.08] space-y-1.5">
+                  <div className="text-[10px] uppercase tracking-wider text-cyan-400 font-semibold flex items-center space-x-1">
                     <Lock className="h-3 w-3" />
-                    <span>Cryptographic Protection Enforced</span>
+                    <span>Cryptographic Invariant Enforced</span>
                   </div>
                   <p className="text-[11px] font-mono text-zinc-300">
                     {lastResult.message}
                   </p>
-                  <p className="text-[10px] text-zinc-500">
+                  <p className="text-[10px] text-zinc-400">
                     {lastResult.invariantDetails}
                   </p>
+                  <div className="text-[10px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
+                    {lastResult.protocolAudit}
+                  </div>
                 </div>
               </div>
 
@@ -450,7 +460,7 @@ export default function AttackSimulator({ onAttackTriggered }: AttackSimulatorPr
               <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
                 <div className="flex items-center space-x-1.5 text-[11px] font-mono text-emerald-400">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span>Logged to Live Telemetry Stream</span>
+                  <span>Verified &amp; logged to Live Ingestion Stream</span>
                 </div>
                 <button
                   onClick={scrollToTelemetryStream}

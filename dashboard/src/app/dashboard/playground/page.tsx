@@ -535,6 +535,14 @@ export default function TracePlaygroundPage() {
             className="w-full flex-1 bg-black/60 border border-white/[0.08] focus:border-zinc-500 rounded-lg p-3.5 font-mono text-xs text-zinc-200 focus:outline-none resize-none leading-relaxed selection:bg-zinc-800"
           />
 
+          {/* Client-Side Privacy Notice */}
+          <div className="flex items-center space-x-2 py-2 px-3 rounded-lg bg-zinc-900/60 border border-emerald-500/20 text-[11px] font-mono text-zinc-300">
+            <Lock className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>
+              <strong className="text-emerald-400 font-semibold">100% Client-Side Processing:</strong> Payloads entered here are evaluated locally in your browser session and are never logged, stored, or transmitted to any server.
+            </span>
+          </div>
+
           {/* Trapped Findings List */}
           {analysis.findings.length > 0 && (
             <div className="space-y-1.5 pt-2 border-t border-white/[0.06]">
