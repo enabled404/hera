@@ -318,7 +318,7 @@ export default function DashboardThreatFeedPage() {
       <AttackSimulator onAttackTriggered={handleAttackTriggered} />
 
       {/* 3. Real-Time Threat Stream & Payload Inspector */}
-      <div className="space-y-3">
+      <div id="live-telemetry-stream" className="space-y-3 scroll-mt-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <h3 className="text-sm font-semibold text-white tracking-tight font-sans">

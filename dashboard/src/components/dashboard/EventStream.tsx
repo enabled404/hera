@@ -95,14 +95,14 @@ export default function EventStream({ events }: EventStreamProps) {
         return (
           <span className="inline-flex items-center space-x-1 rounded-md bg-rose-950/60 border border-rose-500/30 px-2 py-0.5 text-[10px] font-mono font-semibold text-rose-300">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />
-            <span>403 FORBIDDEN</span>
+            <span>403 BLOCKED</span>
           </span>
         );
       case "MODEL_MISMATCH":
         return (
           <span className="inline-flex items-center space-x-1 rounded-md bg-rose-950/60 border border-rose-500/30 px-2 py-0.5 text-[10px] font-mono font-semibold text-rose-300">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-            <span>403 FORBIDDEN</span>
+            <span>403 BLOCKED</span>
           </span>
         );
       case "SECRET_IN_STATE":
