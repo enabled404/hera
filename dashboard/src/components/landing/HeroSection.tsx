@@ -61,7 +61,7 @@ export default function HeroSection() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white font-sans leading-[1.08] max-w-5xl mx-auto">
+        <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white font-sans leading-[1.1] text-balance max-w-5xl mx-auto">
           Zero-Trust State Security for{" "}
           <span className="text-gradient-emerald">
             Autonomous AI Agents
@@ -69,32 +69,33 @@ export default function HeroSection() {
         </h1>
 
         {/* Subheadline */}
-        <p className="text-base sm:text-lg lg:text-xl text-zinc-400 max-w-3xl mx-auto font-sans leading-relaxed font-normal">
+        <p className="text-sm sm:text-base lg:text-xl text-zinc-400 max-w-3xl mx-auto font-sans leading-relaxed font-normal">
           Frontier reasoning models return chain-of-thought traces as client-held AEAD envelopes. Hera
           intercepts, context-binds, and vaults agent execution state to eliminate data leakage, state tampering, and decryption oracles.
         </p>
 
         {/* Action Row */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           {/* Primary CTA */}
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold font-sans shadow-[0_0_24px_rgba(16,185,129,0.3)] transition duration-150 active:scale-[0.98] btn-shine"
+            className="w-full sm:w-auto touch-target inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold font-sans shadow-[0_0_24px_rgba(16,185,129,0.3)] transition duration-150 active-spring btn-shine"
           >
             <span>Explore Live SOC Sandbox</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
 
           {/* Secondary CLI Pill */}
-          <div className="w-full sm:w-auto flex items-center justify-between space-x-3 px-4 py-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-850 border border-white/[0.1] text-xs font-mono text-zinc-300 transition shadow-sm">
-            <div className="flex items-center space-x-2">
-              <Terminal className="h-3.5 w-3.5 text-emerald-400" />
-              <span className="text-zinc-200">{cliCommand}</span>
+          <div className="w-full sm:w-auto flex items-center justify-between space-x-2 px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-zinc-850 border border-white/[0.1] text-xs font-mono text-zinc-300 transition shadow-sm max-w-full overflow-hidden">
+            <div className="flex items-center space-x-2 min-w-0">
+              <Terminal className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              <span className="text-zinc-200 text-[11px] sm:text-xs truncate">{cliCommand}</span>
             </div>
             <button
               onClick={handleCopy}
-              className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
+              className="touch-target p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition shrink-0 active-spring"
               title="Copy command to clipboard"
+              aria-label="Copy CLI command"
             >
               {copiedCli ? (
                 <Check className="h-3.5 w-3.5 text-emerald-400" />
@@ -107,7 +108,7 @@ export default function HeroSection() {
           {/* Tertiary Link */}
           <a
             href="mailto:saadkhalid2000@outlook.com?subject=Inquiry:%20StateGuard%20Agent%20Security%20Audit"
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-4 py-3 rounded-xl text-xs font-mono text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-white/[0.06] transition"
+            className="w-full sm:w-auto touch-target inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-mono text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-white/[0.06] transition active-spring"
           >
             <span>Book an Agent State Audit</span>
             <ArrowRight className="h-3 w-3 text-zinc-500" />
@@ -119,22 +120,22 @@ export default function HeroSection() {
           <div className="glass-panel rounded-2xl overflow-hidden border border-white/[0.12] shadow-2xl">
             {/* Terminal Top Chrome */}
             <div className="px-4 py-3 bg-black/80 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-2 min-w-0">
+                <div className="flex items-center space-x-1.5 shrink-0">
                   <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block"></span>
                   <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block"></span>
                   <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block"></span>
                 </div>
-                <span className="text-xs font-mono text-zinc-400 pl-2 border-l border-white/[0.08]">
+                <span className="text-xs font-mono text-zinc-400 pl-2 border-l border-white/[0.08] truncate">
                   stateguard-proxy:8080 &bull; SIMD Zero-Copy Ingress
                 </span>
               </div>
 
               {/* Simulation Mode Selector */}
-              <div className="flex items-center space-x-1 p-1 rounded-lg bg-zinc-900/90 border border-white/[0.08] text-[11px] font-mono">
+              <div className="flex items-center space-x-1 p-1 rounded-lg bg-zinc-900/90 border border-white/[0.08] text-[11px] font-mono overflow-x-auto scrollbar-none max-w-full">
                 <button
                   onClick={() => runSimulation("CLEAN")}
-                  className={`px-2.5 py-1 rounded transition ${
+                  className={`touch-target px-2.5 py-1 rounded transition shrink-0 active-spring ${
                     simMode === "CLEAN"
                       ? "bg-emerald-950 text-emerald-300 border border-emerald-500/30"
                       : "text-zinc-400 hover:text-white"
@@ -144,7 +145,7 @@ export default function HeroSection() {
                 </button>
                 <button
                   onClick={() => runSimulation("REPLAY")}
-                  className={`px-2.5 py-1 rounded transition ${
+                  className={`touch-target px-2.5 py-1 rounded transition shrink-0 active-spring ${
                     simMode === "REPLAY"
                       ? "bg-rose-950 text-rose-300 border border-rose-500/30"
                       : "text-zinc-400 hover:text-white"
@@ -154,7 +155,7 @@ export default function HeroSection() {
                 </button>
                 <button
                   onClick={() => runSimulation("SECRET")}
-                  className={`px-2.5 py-1 rounded transition ${
+                  className={`touch-target px-2.5 py-1 rounded transition shrink-0 active-spring ${
                     simMode === "SECRET"
                       ? "bg-amber-950 text-amber-300 border border-amber-500/30"
                       : "text-zinc-400 hover:text-white"
@@ -166,7 +167,7 @@ export default function HeroSection() {
             </div>
 
             {/* Terminal Live Output */}
-            <div className="p-4 sm:p-5 bg-black/90 font-mono text-xs space-y-2 leading-relaxed">
+            <div className="p-4 sm:p-5 bg-black/90 font-mono text-xs space-y-2 leading-relaxed overflow-x-auto">
               {simMode === "CLEAN" && (
                 <div className="space-y-1.5">
                   <div className="text-zinc-400">
@@ -226,12 +227,12 @@ export default function HeroSection() {
             </div>
 
             {/* Terminal Bottom Action Bar */}
-            <div className="px-4 py-2 bg-zinc-950 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
-              <span className="flex items-center space-x-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
-                <span>Active Protection: P1 Ordinality &bull; P2 User Quarantine &bull; P4 In-Process Telemetry</span>
+            <div className="px-4 py-2.5 bg-zinc-950 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-zinc-500">
+              <span className="flex items-center space-x-1.5 truncate">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0"></span>
+                <span className="truncate">Active Protection: P1 Ordinality &bull; P2 User Quarantine &bull; P4 Telemetry</span>
               </span>
-              <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300 transition flex items-center space-x-1">
+              <Link href="/dashboard" className="touch-target text-emerald-400 hover:text-emerald-300 transition flex items-center space-x-1 shrink-0 active-spring self-start sm:self-auto">
                 <span>Launch Full SOC &rarr;</span>
               </Link>
             </div>

@@ -91,6 +91,8 @@ export default function DocsSidebar() {
   const [filter, setFilter] = useState("");
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   // Listen for Cmd+K / Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,6 +108,7 @@ export default function DocsSidebar() {
   }, []);
 
   const allItems = DOC_SECTIONS.flatMap((s) => s.items);
+  const currentItem = allItems.find((item) => item.href === pathname);
   const searchResults = allItems.filter(
     (item) =>
       item.title.toLowerCase().includes(filter.toLowerCase()) ||
@@ -121,24 +124,43 @@ export default function DocsSidebar() {
 
   return (
     <>
-      <aside className="w-full lg:w-64 shrink-0 space-y-6 lg:border-r border-white/[0.08] lg:pr-6 lg:py-6">
-        {/* Search Trigger Button with Cmd+K Badge */}
+      <aside className="w-full lg:w-64 shrink-0 space-y-4 lg:space-y-6 lg:border-r border-white/[0.08] lg:pr-6 lg:py-6">
+        {/* Mobile Navigation Drawer Toggle (< lg) */}
+        <div className="lg:hidden flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/90 border border-white/[0.08] text-xs font-mono">
+          <button
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            className="touch-target flex items-center space-x-2 text-zinc-200 font-semibold active-spring min-w-0 pr-2"
+          >
+            <BookOpen className="h-4 w-4 text-emerald-400 shrink-0" />
+            <span className="truncate">{currentItem?.title || "Documentation"}</span>
+            <ChevronRight className={`h-3.5 w-3.5 text-zinc-500 shrink-0 transition-transform ${mobileNavOpen ? "rotate-90" : ""}`} />
+          </button>
+          <button
+            onClick={() => setCommandPaletteOpen(true)}
+            className="touch-target p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white shrink-0 active-spring"
+            aria-label="Search documentation"
+          >
+            <Search className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {/* Search Trigger Button with Cmd+K Badge (Desktop only) */}
         <button
           onClick={() => setCommandPaletteOpen(true)}
-          className="w-full flex items-center justify-between pl-3 pr-2 py-1.5 rounded-lg bg-black/60 hover:bg-zinc-900 border border-white/[0.08] text-xs font-mono text-zinc-400 hover:text-white transition group"
+          className="hidden lg:flex w-full items-center justify-between pl-3 pr-2 py-1.5 rounded-lg bg-black/60 hover:bg-zinc-900 border border-white/[0.08] text-xs font-mono text-zinc-400 hover:text-white transition group active-spring"
         >
           <div className="flex items-center space-x-2">
             <Search className="h-3.5 w-3.5 text-zinc-500 group-hover:text-emerald-400 transition" />
             <span>Search docs...</span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-zinc-800 border border-white/[0.08] text-[10px] text-zinc-400">
+          <kbd className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-zinc-800 border border-white/[0.08] text-[10px] text-zinc-400">
             <Command className="h-2.5 w-2.5" />
             <span>K</span>
           </kbd>
         </button>
 
-        {/* Navigation Sections */}
-        <nav className="space-y-6">
+        {/* Navigation Sections (Always visible on lg+, toggleable on mobile) */}
+        <nav className={`space-y-6 ${mobileNavOpen ? "block animate-enter-down" : "hidden lg:block"}`}>
           {filteredSections.map((section, idx) => (
             <div key={idx} className="space-y-2">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-400 px-2">
@@ -151,7 +173,8 @@ export default function DocsSidebar() {
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-sans transition ${
+                        onClick={() => setMobileNavOpen(false)}
+                        className={`touch-target flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans transition active-spring ${
                           isActive
                             ? "bg-zinc-850 font-medium text-white border-l-2 border-l-emerald-400 pl-2.5 shadow-sm"
                             : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"

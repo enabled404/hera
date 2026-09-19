@@ -149,13 +149,13 @@ export default function EventStream({ events }: EventStreamProps) {
     <div className="space-y-3">
       {/* Header & Controls */}
       <div className="glass-panel rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5">
+        {/* Filter Pills (Horizontally swipeable on mobile) */}
+        <div className="flex flex-nowrap sm:flex-wrap items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0 -mx-1 px-1">
           {filterOptions.map((opt) => (
             <button
               key={opt.id}
               onClick={() => setActiveFilter(opt.id)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              className={`touch-target px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 active-spring ${
                 activeFilter === opt.id
                   ? "bg-zinc-800 text-white border border-white/[0.1] shadow-sm"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
@@ -168,21 +168,21 @@ export default function EventStream({ events }: EventStreamProps) {
 
         {/* Search & Reset */}
         <div className="flex items-center space-x-2">
-          <div className="relative min-w-[200px] sm:min-w-[240px]">
-            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-zinc-500" />
+          <div className="relative w-full sm:min-w-[240px]">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-500" />
             <input
               type="text"
               placeholder="Search session, tenant, model..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/[0.08] pl-8 pr-3 py-1 text-xs font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full rounded-lg bg-black/40 border border-white/[0.08] pl-8 pr-3 py-1.5 text-xs font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 transition"
             />
           </div>
 
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="text-xs font-mono text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-800/60 border border-white/[0.06]"
+              className="touch-target text-xs font-mono text-zinc-400 hover:text-white px-2.5 py-1.5 rounded bg-zinc-800/60 border border-white/[0.06] active-spring shrink-0"
             >
               Clear
             </button>
@@ -207,7 +207,7 @@ export default function EventStream({ events }: EventStreamProps) {
             <div
               key={event.id}
               onClick={() => setSelectedEvent(event)}
-              className="bg-zinc-950/40 border border-white/[0.04] hover:border-white/[0.1] rounded-lg p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between transition-all group gap-2 cursor-pointer"
+              className="bg-zinc-950/40 border border-white/[0.04] hover:border-white/[0.1] rounded-lg p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between transition-all group gap-2 cursor-pointer active:scale-[0.99] touch-target"
             >
               {/* Left Zone: Status pill, attack label, timestamp, session ID */}
               <div className="flex items-center space-x-2.5 min-w-0">
@@ -249,29 +249,29 @@ export default function EventStream({ events }: EventStreamProps) {
         )}
       </div>
 
-      {/* INSPECTION MODAL / FORENSIC DRAWER */}
+      {/* INSPECTION MODAL / FORENSIC DRAWER (Bottom-sheet on mobile, centered modal on desktop) */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-enter-down">
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl glass-panel border border-white/[0.12] p-5 sm:p-6 shadow-2xl space-y-5">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-enter-down">
+          <div className="relative w-full max-w-4xl max-h-[88vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl glass-panel border-t sm:border border-white/[0.12] p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3.5">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2.5">
+              <div className="space-y-1 min-w-0 pr-2">
+                <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
                   {getStatusPill(selectedEvent.event_type)}
-                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight font-sans">
+                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight font-sans truncate">
                     {getEventTitle(selectedEvent.event_type)}
                   </h3>
                 </div>
-                <p className="text-xs font-mono text-zinc-400">
-                  Event ID: {selectedEvent.id} &bull; Timestamp:{" "}
-                  {new Date(selectedEvent.created_at).toISOString()}
+                <p className="text-[11px] sm:text-xs font-mono text-zinc-400 truncate">
+                  ID: {selectedEvent.id} &bull;{" "}
+                  {new Date(selectedEvent.created_at).toLocaleTimeString()}
                 </p>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
                 <button
                   onClick={() => copyCurlReproducer(selectedEvent)}
-                  className="hidden sm:flex items-center space-x-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-zinc-300 transition"
+                  className="hidden sm:flex touch-target items-center space-x-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] px-2.5 py-1.5 text-xs font-mono text-zinc-300 transition active-spring"
                   title="Copy cURL command"
                 >
                   <Terminal className="h-3.5 w-3.5 text-emerald-400" />
@@ -282,19 +282,20 @@ export default function EventStream({ events }: EventStreamProps) {
                   onClick={() =>
                     copyToClipboard(JSON.stringify(selectedEvent, null, 2))
                   }
-                  className="flex items-center space-x-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-zinc-300 transition"
+                  className="touch-target flex items-center space-x-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] px-2.5 py-1.5 text-xs font-mono text-zinc-300 transition active-spring"
                 >
                   {copied ? (
                     <Check className="h-3.5 w-3.5 text-emerald-400" />
                   ) : (
                     <Copy className="h-3.5 w-3.5 text-zinc-400" />
                   )}
-                  <span>{copied ? "Copied" : "Copy JSON"}</span>
+                  <span>{copied ? "Copied" : "JSON"}</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedEvent(null)}
-                  className="rounded-lg p-1 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition"
+                  className="touch-target rounded-lg p-2 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition active-spring"
+                  aria-label="Close inspector"
                 >
                   <X className="h-4 w-4" />
                 </button>

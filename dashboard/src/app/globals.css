@@ -7,19 +7,26 @@
   --foreground: #f4f4f5;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
   background-color: #050506;
   background-image:
-    radial-gradient(circle at 50% -20%, rgba(16, 185, 129, 0.10) 0%, rgba(6, 182, 212, 0.05) 30%, transparent 70%),
-    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    radial-gradient(circle at 50% -20%, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.06) 30%, transparent 70%),
+    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: auto, 28px 28px;
   background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom ultra-thin modern dark scrollbar */
@@ -42,14 +49,33 @@ body {
 }
 
 @layer utilities {
-  /* Elevated glass panel with top-edge gradient light */
+  /* 2026 Elevated glass panel with top-edge gradient light & kinetic hover */
   .glass-panel {
-    @apply bg-[#0c0c0e]/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.6)] relative before:absolute before:inset-x-0 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/[0.14] before:to-transparent before:pointer-events-none;
+    @apply bg-[#0c0c0e]/80 backdrop-blur-2xl border border-white/[0.07] shadow-[0_12px_40px_rgba(0,0,0,0.6)] relative before:absolute before:inset-x-0 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/[0.15] before:to-transparent before:pointer-events-none hover:shadow-[0_0_24px_rgba(16,185,129,0.06)] transition-all duration-200;
   }
 
-  /* Elevated glass card with interactive hover highlight */
+  /* 2026 Elevated glass card with interactive hover highlight */
   .glass-card {
-    @apply bg-[#0c0c0e]/65 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.18] transition-all duration-200 relative before:absolute before:inset-x-0 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/[0.12] before:to-transparent before:pointer-events-none;
+    @apply bg-[#0c0c0e]/70 backdrop-blur-2xl border border-white/[0.07] hover:border-white/[0.16] hover:shadow-[0_0_24px_rgba(16,185,129,0.06)] transition-all duration-200 relative before:absolute before:inset-x-0 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/[0.12] before:to-transparent before:pointer-events-none;
+  }
+
+  /* Spring active state */
+  .active-spring {
+    @apply active:scale-[0.98] transition-transform duration-100 ease-out;
+  }
+
+  /* Standard 44px minimum touch target for mobile ergonomics */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Mobile horizontal scroll without ugly bars */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 
   /* Subtle radial glows */

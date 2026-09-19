@@ -376,7 +376,26 @@ export default function TracePlaygroundPage() {
         </div>
 
         {/* SVG Waveform Chart */}
-        <div className="relative w-full h-[140px] bg-black/50 rounded-lg p-2 border border-white/[0.05]">
+        <div
+          className="relative w-full h-[140px] bg-black/50 rounded-lg p-2 border border-white/[0.05] touch-none cursor-crosshair select-none"
+          onTouchStart={(e) => {
+            if (!analysis.waveform.length || !e.touches[0]) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const ratio = Math.max(0, Math.min(1, touchX / rect.width));
+            const targetIdx = Math.round(ratio * (analysis.waveform.length - 1));
+            if (analysis.waveform[targetIdx]) setHoveredPoint(analysis.waveform[targetIdx]);
+          }}
+          onTouchMove={(e) => {
+            if (!analysis.waveform.length || !e.touches[0]) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const ratio = Math.max(0, Math.min(1, touchX / rect.width));
+            const targetIdx = Math.round(ratio * (analysis.waveform.length - 1));
+            if (analysis.waveform[targetIdx]) setHoveredPoint(analysis.waveform[targetIdx]);
+          }}
+          onTouchEnd={() => setTimeout(() => setHoveredPoint(null), 1500)}
+        >
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             className="w-full h-full preserve-3d"
@@ -455,7 +474,7 @@ export default function TracePlaygroundPage() {
             })}
           </svg>
 
-          {/* Interactive Tooltip on hover */}
+          {/* Interactive Tooltip on hover or touch scrub */}
           {hoveredPoint && (
             <div className="absolute top-2 left-4 bg-zinc-900 border border-white/[0.15] p-2 rounded text-[10px] font-mono shadow-xl z-20 pointer-events-none">
               <span className="text-zinc-400">Offset {hoveredPoint.index}: </span>
@@ -479,25 +498,25 @@ export default function TracePlaygroundPage() {
 
         {/* Quick Injectors */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <div className="flex items-center space-x-2">
-            <span className="text-[11px] font-mono text-zinc-500">Inject Synthetic Leak:</span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <span className="text-[11px] font-mono text-zinc-500 mr-0.5">Inject Synthetic Leak:</span>
             <button
               onClick={() => injectSyntheticToken("OPENAI")}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-[11px] font-mono text-zinc-300 hover:text-white transition"
+              className="touch-target flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-[11px] font-mono text-zinc-300 hover:text-white transition active-spring"
             >
               <Plus className="h-3 w-3 text-emerald-400" />
               <span>+ OpenAI Key</span>
             </button>
             <button
               onClick={() => injectSyntheticToken("AWS")}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-[11px] font-mono text-zinc-300 hover:text-white transition"
+              className="touch-target flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-[11px] font-mono text-zinc-300 hover:text-white transition active-spring"
             >
               <Plus className="h-3 w-3 text-amber-400" />
               <span>+ AWS Key</span>
             </button>
             <button
               onClick={() => injectSyntheticToken("JWT")}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-[11px] font-mono text-zinc-300 hover:text-white transition"
+              className="touch-target flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-[11px] font-mono text-zinc-300 hover:text-white transition active-spring"
             >
               <Plus className="h-3 w-3 text-cyan-400" />
               <span>+ JWT Bearer</span>
@@ -506,7 +525,7 @@ export default function TracePlaygroundPage() {
 
           <button
             onClick={() => setInputPayload(PRESETS[2].payload)}
-            className="text-[11px] font-mono text-zinc-400 hover:text-white underline underline-offset-2 transition"
+            className="touch-target text-[11px] font-mono text-zinc-400 hover:text-white underline underline-offset-2 transition active-spring"
           >
             Clear to Benign Prose
           </button>
@@ -536,10 +555,10 @@ export default function TracePlaygroundPage() {
           />
 
           {/* Client-Side Privacy Notice */}
-          <div className="flex items-center space-x-2 py-2 px-3 rounded-lg bg-zinc-900/60 border border-emerald-500/20 text-[11px] font-mono text-zinc-300">
+          <div className="flex items-center space-x-2 py-2.5 px-3.5 rounded-lg bg-zinc-900/80 border border-emerald-500/30 text-[11px] font-mono text-zinc-300">
             <Lock className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
             <span>
-              <strong className="text-emerald-400 font-semibold">100% Client-Side Processing:</strong> Payloads entered here are evaluated locally in your browser session and are never logged, stored, or transmitted to any server.
+              🔒 <strong className="text-emerald-400 font-semibold">Client-Side Evaluation:</strong> Entropy calculations and secret masking execute exclusively in local browser memory via Web Workers. Data never leaves your device.
             </span>
           </div>
 

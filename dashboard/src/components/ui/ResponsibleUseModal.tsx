@@ -31,8 +31,8 @@ export default function ResponsibleUseModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-enter-down">
-      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl glass-panel border border-white/[0.12] p-6 sm:p-8 shadow-2xl space-y-6">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-enter-down">
+      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl glass-panel border-t sm:border border-white/[0.12] p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
           <div className="flex items-center space-x-2.5">
@@ -41,7 +41,7 @@ export default function ResponsibleUseModal({
             </span>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-white font-sans tracking-tight">
-                Terms of Service &amp; Responsible Use Policy
+                Terms of Service &amp; Responsible Use
               </h2>
               <p className="text-xs font-mono text-zinc-400">
                 Project Hera &middot; StateGuard Core v1.1
@@ -51,7 +51,7 @@ export default function ResponsibleUseModal({
 
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition"
+            className="touch-target rounded-lg p-2 text-zinc-400 hover:text-white hover:bg-white/[0.08] transition active-spring"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />

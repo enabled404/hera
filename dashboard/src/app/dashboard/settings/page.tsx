@@ -57,11 +57,11 @@ export default function SettingsPolicyPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 self-start sm:self-auto">
           <button
             type="button"
             onClick={handleRotateKey}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] text-xs font-mono text-zinc-300 hover:text-white transition"
+            className="touch-target flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] text-xs font-mono text-zinc-300 hover:text-white transition active-spring"
           >
             <RefreshCw className={`h-3 w-3 text-zinc-400 ${keyRotated ? "animate-spin text-emerald-400" : ""}`} />
             <span>{keyRotated ? "Key Rotated!" : "Rotate Tenant Master Key"}</span>
@@ -297,10 +297,10 @@ export default function SettingsPolicyPage() {
         </div>
 
         {/* Save Bar */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
           <button
             type="submit"
-            className="px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-sans font-medium text-xs transition duration-150 active:scale-[0.99]"
+            className="touch-target px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-sans font-semibold text-xs transition duration-150 active-spring btn-shine"
           >
             Apply &amp; Distribute Policy
           </button>

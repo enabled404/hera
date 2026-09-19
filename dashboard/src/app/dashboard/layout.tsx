@@ -19,10 +19,10 @@ export default function DashboardLayout({
 
       {/* 1. Sandbox Notice Banner (on /dashboard) */}
       <div className="bg-zinc-950/90 border-b border-white/[0.06] py-2 px-4 shadow-inner">
-        <div className="max-w-7xl mx-auto flex items-center justify-center space-x-2 text-xs font-mono text-zinc-400">
+        <div className="max-w-7xl mx-auto flex items-center justify-center space-x-2 text-[11px] sm:text-xs font-mono text-zinc-400 text-center">
           <Shield className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
           <span>
-            <strong className="text-zinc-200 font-semibold">Demo Sandbox Environment:</strong> Operating on synthetic test vectors and local browser memory. No live agent keys or private telemetry are stored or transmitted.
+            <strong className="text-zinc-200 font-semibold">Notice:</strong> Reference Demonstration Environment. Operating on synthetic test vectors and isolated browser state. No private agent keys or client payloads are retained or transmitted.
           </span>
         </div>
       </div>

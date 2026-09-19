@@ -352,10 +352,10 @@ export default function SessionAuditPage() {
         </div>
 
         {/* Global Verification Actions */}
-        <div className="flex items-center space-x-2.5 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <button
             onClick={handleForkBranchGamma}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] text-xs font-mono text-zinc-300 hover:text-white transition"
+            className="touch-target flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/[0.08] text-xs font-mono text-zinc-300 hover:text-white transition active-spring"
           >
             <GitBranch className="h-3 w-3 text-zinc-400" />
             <span>+ Fork Sub-agent</span>
@@ -364,7 +364,7 @@ export default function SessionAuditPage() {
           <button
             onClick={handleVerifyTree}
             disabled={isVerifying}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 font-sans font-medium text-xs text-black transition active:scale-[0.99] disabled:opacity-50 shadow-sm"
+            className="touch-target flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 font-sans font-medium text-xs text-black transition active-spring disabled:opacity-50 shadow-sm"
           >
             <RefreshCw className={`h-3 w-3 ${isVerifying ? "animate-spin" : ""}`} />
             <span>Verify Merkle State</span>
@@ -539,11 +539,13 @@ export default function SessionAuditPage() {
               </div>
 
               {/* Connected Visual Canvas */}
-              <div className="relative min-h-[440px] w-full bg-black/40 rounded-lg p-2 overflow-x-auto border border-white/[0.04]">
+              <div className="relative min-h-[440px] w-full bg-black/40 rounded-lg p-2 overflow-x-auto scrollbar-none touch-pan-x border border-white/[0.04]">
                 {/* SVG Connecting Bézier curves */}
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ minWidth: "360px", minHeight: "440px" }}
+                  viewBox="0 0 800 500"
+                  preserveAspectRatio="xMidYMid meet"
                 >
                   <defs>
                     <linearGradient id="edgeGradMain" x1="0%" y1="0%" x2="0%" y2="100%">
