@@ -1,0 +1,2 @@
+{"timestamp":"2026-09-08T12:00:00Z","turn":1,"role":"user","content":"How do I configure logging in Rust?"}
+{"timestamp":"2026-09-08T12:00:02Z","turn":1,"role":"assistant","content":[{"type":"thinking","thinking":"Synthesizing answer on tracing-subscriber and log facade.","signature":"sgh_018f2a1b9c3d7e4f8a1b2c3d4e5f60718293a4b5c6d7e8f0123456789abcdef0"},{"type":"text","text":"You can use tracing and tracing-subscriber."}]}
