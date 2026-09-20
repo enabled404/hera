@@ -1,8 +1,13 @@
 <div align="center">
 
-# STATEGUARD
+<a href="https://herasec.vercel.app">
+  <img src="dashboard/src/app/icon.svg" width="68" height="68" alt="Hera Logo" />
+</a>
 
-**Enterprise Agent State Security Gateway & Trace Auditing Platform**
+# HERA
+
+**Zero-Trust State Security Gateway & Trace Auditing Platform for Autonomous AI Agents**  
+*(Powered by StateGuard Core Engine v1.1.0)*
 
 [![CI Build](https://img.shields.io/github/actions/workflow/status/enabled404/hera/release.yml?branch=main&style=flat-square&logo=github)](https://github.com/enabled404/hera/actions)
 [![Rust Version](https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org)
@@ -14,14 +19,12 @@
 <br />
 
 [**Live Platform**](https://herasec.vercel.app) •
-[**Quickstart**](#-quickstart) •
-[**The Core Flaw**](#-the-core-flaw-cryptographic-contextual-misbinding) •
-[**Architecture**](#-architecture) •
-[**Integration**](#-drop-in-integration) •
-[**Benchmarks**](#-performance-benchmarks) •
-[**Threat Matrix**](#-security-threat-coverage-matrix) •
+[**Interactive SOC**](https://herasec.vercel.app/dashboard) •
+[**Merkle DAG**](https://herasec.vercel.app/dashboard/sessions) •
+[**Entropy Lab**](https://herasec.vercel.app/dashboard/playground) •
 [**Documentation**](https://herasec.vercel.app/docs) •
-[**Interactive SOC**](https://herasec.vercel.app/dashboard)
+[**Quickstart**](#-quickstart) •
+[**Threat Matrix**](#-security-threat-coverage-matrix)
 
 </div>
 
@@ -43,11 +46,47 @@ This design flaw opens four critical attack vectors:
 
 ---
 
-## 🎬 Demo
+## 🖥️ Live Platform & Interactive Security Operations Center (SOC)
+
+> [!TIP]
+> Test Hera live in your browser at **[herasec.vercel.app](https://herasec.vercel.app)** — operating in an ungated reference sandbox with real-time adversarial attack simulations, Merkle DAG state lineage verification, and in-flight secret redaction.
+
+### 1. Live Threat Telemetry & SOC Ingress Sandbox (`/dashboard`)
+*Real-time stream of cryptographic context validations, sub-millisecond p99 latency overhead ($0.49\text{ms}$), and live adversarial attack simulation.*
+
+[![Hera SOC Live Threat Console](assets/screenshots/soc_console.png)](https://herasec.vercel.app/dashboard)
+
+---
+
+### 2. Platform Overview & Reverse Proxy Gateway (`/`)
+*Zero-copy streaming reverse proxy and cryptographic state vault eliminating contextual misbinding and decryption oracles.*
+
+[![Hera Platform Overview](assets/screenshots/landing_hero.png)](https://herasec.vercel.app)
+
+---
+
+### 3. Tree-of-Thought & Merkle State Lineage Auditor (`/dashboard/sessions`)
+*Audit turn monotonic ordinals, multi-branch sub-agent execution (`branch_alpha`, `branch_beta`), and subtree Merkle inclusion proofs in real-time.*
+
+[![Hera Merkle DAG Auditor](assets/screenshots/dag_explorer.png)](https://herasec.vercel.app/dashboard/sessions)
+
+---
+
+### 4. Sliding-Window Shannon Entropy & Redaction Lab (`/dashboard/playground`)
+*Sliding-window Shannon entropy analysis ($H(X) \ge 4.2$) and zero-trust tokenization scrubbing trapped API keys and JWTs before APM/OTel egress.*
+
+[![Hera Entropy Redaction Sandbox](assets/screenshots/trace_sanitizer.png)](https://herasec.vercel.app/dashboard/playground)
+
+---
+
+<details>
+<summary><b>📺 CLI Terminal Recording (CLI Demo)</b></summary>
+<br />
 
 ![StateGuard Terminal Demonstration](demo/demo.gif)
 
-*Watch StateGuard detect trapped AWS credentials, vault raw reasoning tokens into ephemeral `sgh_` UUID handles, and drop cross-tenant replay attacks with HTTP 403 `StateIntegrityViolation`.*
+*Detect trapped AWS credentials, vault raw reasoning tokens into ephemeral `sgh_` UUID handles, and drop cross-tenant replay attacks with HTTP 403 `StateIntegrityViolation` via terminal CLI.*
+</details>
 
 ---
 
