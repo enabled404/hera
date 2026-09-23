@@ -398,8 +398,8 @@ pub fn is_model_compatible(bound_model: &str, target_model: &str) -> bool {
         return true;
     }
 
-    // Disallow Opus / Fable -> Haiku downgrade (e.g. claude-fable-5-1, claude-opus-4-8 -> claude-haiku-4-5)
-    if (b.contains("opus") || b.contains("fable")) && t.contains("haiku") {
+    // Disallow Opus / Sonnet / Fable -> Haiku downgrade (e.g. claude-opus-5-5, claude-opus-4-8, claude-3-7-sonnet -> claude-haiku-4-5)
+    if (b.contains("opus") || b.contains("sonnet") || b.contains("fable")) && t.contains("haiku") {
         return false;
     }
 

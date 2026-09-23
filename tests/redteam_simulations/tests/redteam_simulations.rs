@@ -144,7 +144,7 @@ async fn test_case_b_model_downgrade_replay() {
     let (gateway_url, state) = start_test_gateway(upstream_url, ProxyMode::StatefulVault).await;
     let client = reqwest::Client::new();
 
-    // 1. Obtain reasoning handle bound to Opus 4.8
+    // 1. Obtain reasoning handle bound to Opus 5.5
     let resp_opus = client
         .post(format!("{}/v1/messages", gateway_url))
         .header("x-stateguard-tenant-id", "tenant-alpha")
@@ -152,7 +152,7 @@ async fn test_case_b_model_downgrade_replay() {
         .header("x-stateguard-session-id", "sess-alice-02")
         .header("x-stateguard-turn", "1")
         .json(&json!({
-            "model": "claude-opus-4.8",
+            "model": "claude-opus-5.5",
             "messages": [{"role": "user", "content": "Analyze sensitive policy"}]
         }))
         .send()
@@ -162,7 +162,7 @@ async fn test_case_b_model_downgrade_replay() {
     let body: Value = resp_opus.json().await.unwrap();
     let opus_handle = body["content"][0]["signature"].as_str().unwrap().to_string();
 
-    // 2. Attempt to replay Opus 4.8 reasoning into a compliant weak sibling model (Haiku 4.5)
+    // 2. Attempt to replay Opus 5.5 reasoning into a compliant weak sibling model (Haiku 4.5)
     let resp_downgrade = client
         .post(format!("{}/v1/messages", gateway_url))
         .header("x-stateguard-tenant-id", "tenant-alpha")

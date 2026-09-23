@@ -121,9 +121,13 @@ mod tests {
     fn test_frontier_model_lineage_protection() {
         use crate::aead::is_model_compatible;
 
-        // Claude / Fable tier checks
+        // Claude / Opus / Sonnet / Fable tier checks
         assert!(!is_model_compatible("claude-fable-5-1", "claude-haiku-4-5"));
         assert!(!is_model_compatible("claude-opus-4-8", "claude-haiku-4-5"));
+        assert!(!is_model_compatible("claude-opus-5-5", "claude-haiku-4-5"));
+        assert!(!is_model_compatible("claude-opus-5.5", "claude-3-5-haiku-20241022"));
+        assert!(!is_model_compatible("claude-3-7-sonnet", "claude-haiku-4-5"));
+        assert!(is_model_compatible("claude-opus-5-5", "claude-sonnet-4-6"));
         assert!(is_model_compatible("claude-opus-4-8", "claude-sonnet-4-6"));
 
         // OpenAI tier checks (Astra / Sol / Luna / o3 / o1)
