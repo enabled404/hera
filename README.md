@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://herasec.vercel.app">
-  <img src="dashboard/src/app/icon.svg" width="68" height="68" alt="Hera Logo" />
+  <img src="assets/icon.svg" width="68" height="68" alt="Hera Logo" />
 </a>
 
 # HERA
@@ -20,9 +20,9 @@
 
 [**Live Platform**](https://herasec.vercel.app) •
 [**Interactive SOC**](https://herasec.vercel.app/dashboard) •
-[**Merkle DAG**](https://herasec.vercel.app/dashboard/sessions) •
-[**Entropy Lab**](https://herasec.vercel.app/dashboard/playground) •
-[**Documentation**](https://herasec.vercel.app/docs) •
+[**Documentation**](docs/README.md) •
+[**Threat Model**](docs/THREAT_MODEL.md) •
+[**Architecture**](docs/ARCHITECTURE.md) •
 [**Quickstart**](#-quickstart) •
 [**Threat Matrix**](#-security-threat-coverage-matrix)
 

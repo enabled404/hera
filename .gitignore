@@ -2,7 +2,8 @@
 /target
 **/*.rs.bk
 
-# Node / JavaScript / Next.js
+# Private Web Platform & Dashboard (Maintained separately in private repo enabled404/hera-web)
+dashboard/
 node_modules
 /node_modules
 /.next
@@ -31,3 +32,5 @@ output.sarif
 *.swp
 *.log
 .vercel
+.agents/
+videos/
