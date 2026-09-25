@@ -66,3 +66,25 @@ curl https://api.anthropic.com/v1/messages \
 ### 4. Invisible Prompt Injection & Turn Rollback
 - **Vulnerability:** Attackers inject zero-width Unicode characters or adversarial instructions into prior reasoning envelopes, tricking subsequent turns into executing malicious tool calls.
 - **Hera Defense (Invariant P1):** Monotonic turn sequence ratchets and SHA-256 state chain hashes guarantee that any prior modification invalidates the cryptographic authentication tag.
+
+---
+
+## Academic Attribution & Citation
+
+This threat model and the corresponding StateGuard mitigation architecture build upon research formalized in:
+
+> **Foundational Research Paper:**  
+> *Cryptographic Contextual Misbinding in Stateless Reasoning Model APIs*  
+> **Citation:** [arXiv:2608.09867](https://arxiv.org/abs/2608.09867) `[cs.CR]`  
+> **Vulnerability Advisory:** SG-ADV-2026-001  
+
+We credit the authors of arXiv:2608.09867 for their rigorous formalization of client-held AEAD reasoning token vulnerabilities in frontier LLMs. Project Hera serves as an open-source reference implementation of the cryptographic context binding, streaming redaction, and server-side ephemeral vaulting mechanisms necessary to eliminate these attack surfaces in production multi-agent environments.
+
+```bibtex
+@article{arxiv2026misbinding,
+  title={Cryptographic Contextual Misbinding in Stateless Reasoning Model APIs},
+  journal={arXiv preprint arXiv:2608.09867},
+  year={2026},
+  url={https://arxiv.org/abs/2608.09867}
+}
+```

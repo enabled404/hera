@@ -267,20 +267,38 @@ Engineered in Rust with zero-copy stream chunking, StateGuard introduces near-ze
 * [`sdks/python`](sdks/python): Python SDK with OpenTelemetry span processor and LangChain callback mutator.
 * [`sdks/typescript`](sdks/typescript): TypeScript SDK with Vercel AI SDK middleware and Node.js OTel transformer.
 * [`packages/npx-cli`](packages/npx-cli): Zero-install npx runner.
-* [`dashboard`](dashboard): Next.js 15 + Tailwind compliance and live security audit UI.
+* [`herasec.vercel.app`](https://herasec.vercel.app): Hosted enterprise SOC telemetry console and live reference gateway.
 
 ---
 
-## 📜 Research & Citation
+## 📜 Research Citations & Academic Attribution
 
-If you use StateGuard in academic research or enterprise security evaluations, please cite:
+Project Hera / StateGuard was engineered as an open-source reference mitigation and defense gateway based on foundational reasoning model vulnerability research.
+
+We gratefully acknowledge the researchers and authors of the seminal whitepaper on cryptographic state vulnerabilities in frontier AI reasoning models:
+
+> **Foundational Paper:**  
+> *Cryptographic Contextual Misbinding in Stateless Reasoning Model APIs*  
+> **Citation:** [arXiv:2608.09867](https://arxiv.org/abs/2608.09867) `[cs.CR]`  
+> **Vulnerability Class:** SG-ADV-2026-001 (CVSS v3.1: 8.6 High)  
+> **Summary:** Formalizes the absence of cryptographic Associated Data ($AD$) binding in frontier reasoning model APIs (Anthropic Claude thinking signatures, OpenAI encrypted reasoning, Google Gemini thought signatures), demonstrating how client-held state can be manipulated into asymmetric decryption oracles, cross-user replays, and credential leakage vectors.
+
+If you cite Project Hera or the underlying StateGuard architecture in academic papers, security disclosures, or benchmark evaluations, please cite both the foundational paper and this implementation:
 
 ```bibtex
-@article{stateguard2026misbinding,
-  title={Cryptographic Contextual Misbinding in Stateless Reasoning Model APIs: Vulnerabilities and Defense},
-  author={StateGuard Security Research Team},
+@article{arxiv2026misbinding,
+  title={Cryptographic Contextual Misbinding in Stateless Reasoning Model APIs},
   journal={arXiv preprint arXiv:2608.09867},
-  year={2026}
+  year={2026},
+  url={https://arxiv.org/abs/2608.09867}
+}
+
+@software{khalid2026hera,
+  title={Project Hera: Zero-Trust State Security Gateway and Reasoning Trace Auditor for Autonomous AI Agents},
+  author={Khalid, Saad},
+  year={2026},
+  url={https://github.com/enabled404/hera},
+  version={1.1.0}
 }
 ```
 
