@@ -1,0 +1,11 @@
+target
+crates
+sdks
+packages
+videos
+demo
+.git
+.agents
+tests
+node_modules
+.next
