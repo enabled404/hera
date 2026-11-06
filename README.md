@@ -157,7 +157,7 @@ sg = StateGuardClient(StateGuardConfig(
 client = sg.wrap_anthropic(Anthropic())
 
 response = client.messages.create(
-    model="claude-3-5-sonnet-20241022",
+    model="claude-3-7-sonnet",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Execute database migration"}]
 )
@@ -185,7 +185,7 @@ const sg = new StateGuardClient({
 const openai = sg.wrapOpenAI(new OpenAI());
 
 const response = await openai.chat.completions.create({
-  model: "gpt-4o",
+  model: "gpt-6-astra",
   messages: [{ role: "user", content: "Audit repository configuration" }]
 });
 ```

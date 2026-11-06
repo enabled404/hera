@@ -22,7 +22,7 @@ async fn start_mock_upstream() -> (String, SocketAddr) {
                 "id": "msg_mock_01",
                 "type": "message",
                 "role": "assistant",
-                "model": "claude-3-5-sonnet-20241022",
+                "model": "claude-3-7-sonnet",
                 "content": [
                     {
                         "type": "thinking",
@@ -300,7 +300,7 @@ async fn test_case_e_agent_dag_forking() {
         .header("x-stateguard-branch", "branch_main")
         .header("x-stateguard-turn", "1")
         .json(&json!({
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-3-7-sonnet",
             "messages": [{"role": "user", "content": "Execute root turn"}]
         }))
         .send()
@@ -329,7 +329,7 @@ async fn test_case_e_agent_dag_forking() {
                 .header("x-stateguard-branch", branch_name)
                 .header("x-stateguard-turn", "2")
                 .json(&json!({
-                    "model": "claude-3-5-sonnet-20241022",
+                    "model": "claude-3-7-sonnet",
                     "messages": [
                         {
                             "role": "assistant",
@@ -397,7 +397,7 @@ async fn test_case_f_fragmented_sse_packets() {
         "user-alice".to_string(),
         "sess-stream-frag-01".to_string(),
         1,
-        "claude-3-5-sonnet-20241022".to_string(),
+        "claude-3-7-sonnet".to_string(),
     );
 
     let mut emitted_bytes = Vec::new();
@@ -439,7 +439,7 @@ async fn test_case_g_vault_eviction_recovery() {
         .header("x-stateguard-session-id", "sess-eviction-recovery-01")
         .header("x-stateguard-turn", "1")
         .json(&json!({
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-3-7-sonnet",
             "messages": [{"role": "user", "content": "Execute turn 1"}]
         }))
         .send()
@@ -485,7 +485,7 @@ async fn test_case_g_vault_eviction_recovery() {
         .header("x-stateguard-turn", "2")
         .header("x-stateguard-encapsulated-fallback", &fallback_header)
         .json(&json!({
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-3-7-sonnet",
             "messages": [
                 {
                     "role": "assistant",
@@ -532,7 +532,7 @@ async fn test_case_h_batch_migration_pipeline() {
         let legacy_log = json!({
             "trace_id": format!("legacy-trace-{:03}", i),
             "session_id": format!("sess-historical-{:03}", i),
-            "model": "gpt-4o",
+            "model": "gpt-6-astra",
             "metadata": {
                 "environment": "production-archive",
                 "trapped_key": format!("sk-ant-api03-legacysecretkey{:04}01234567890123456789", i)

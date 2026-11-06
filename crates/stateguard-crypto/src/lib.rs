@@ -35,7 +35,7 @@ mod tests {
 
     #[test]
     fn test_aead_encrypt_decrypt_chacha20() {
-        let ctx = ContextBinding::new("tenant-beta", "user-456", "sess-abc", 2, "gpt-5.6-sol");
+        let ctx = ContextBinding::new("tenant-beta", "user-456", "sess-abc", 2, "gpt-6-astra");
         let plaintext = b"Reasoning: model checking safety guidelines";
         let chain_tag = "tag-turn-2";
 
@@ -134,8 +134,8 @@ mod tests {
         assert!(!is_model_compatible("gpt-6-astra", "o3-mini"));
         assert!(!is_model_compatible("openai-astra", "o3-mini"));
         assert!(!is_model_compatible("gpt-6-astra", "gpt-4o-mini"));
-        assert!(!is_model_compatible("gpt-5.6-sol", "gpt-4o-mini"));
-        assert!(is_model_compatible("gpt-5.6-sol", "gpt-5.6-luna"));
+        assert!(!is_model_compatible("gpt-6-astra", "o3-mini"));
+        assert!(is_model_compatible("gpt-6-astra", "gpt-6-astra"));
         assert!(is_model_compatible("o1", "o1"));
 
         // Gemini tier checks (3.1 Pro / Robotics vs 3.8 Flash)

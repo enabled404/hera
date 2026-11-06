@@ -56,7 +56,7 @@ pub async fn handle_gemini_generate(
     let model_name = model_action
         .split(':')
         .next()
-        .unwrap_or("gemini-1.5-pro")
+        .unwrap_or("gemini-3.1-pro")
         .to_string();
 
     // Inbound check and unvault

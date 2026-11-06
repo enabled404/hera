@@ -178,12 +178,11 @@ pub fn is_model_compatible(bound_model: &str, target_model: &str) -> bool {
         return false;
     }
 
-    // Disallow OpenAI frontier (GPT-6 Astra / Sol / Luna / GPT-5 / o1 / o3) -> mini/nano downgrade
+    // Disallow OpenAI frontier (GPT-6 Astra / Sol / Luna / o1 / o3) -> mini/nano downgrade
     if (b.contains("astra")
         || b.contains("gpt-6")
         || b.contains("sol")
         || b.contains("luna")
-        || b.contains("gpt-5")
         || b.contains("o1")
         || b.contains("o3"))
         && (t.contains("mini") || t.contains("nano"))

@@ -54,7 +54,7 @@ pub async fn handle_openai_chat(
     let target_model = payload
         .get("model")
         .and_then(|m| m.as_str())
-        .unwrap_or("gpt-4o")
+        .unwrap_or("gpt-6-astra")
         .to_string();
 
     // Process inbound request

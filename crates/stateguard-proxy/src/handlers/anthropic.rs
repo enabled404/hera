@@ -54,7 +54,7 @@ pub async fn handle_anthropic_messages(
     let target_model = payload
         .get("model")
         .and_then(|m| m.as_str())
-        .unwrap_or("claude-3-5-sonnet-20241022")
+        .unwrap_or("claude-3-7-sonnet")
         .to_string();
 
     // 1. Process inbound payload: validate reasoning tokens & restore original signatures
